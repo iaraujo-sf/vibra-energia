@@ -1,0 +1,2063 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vibra Energia × Salesforce — Nova Org Roadmap</title>
+<style>
+  :root {
+    --vibra-green: #00A651;
+    --vibra-green-dark: #007A3D;
+    --vibra-green-light: #4DC47D;
+    --sf-blue: #0176D3;
+    --sf-blue-dark: #014486;
+    --sf-blue-light: #1B96FF;
+    --red-alert: #E31837;
+    --gold: #F5A623;
+    --dark: #0A0A0A;
+    --gray-dark: #1A1A1A;
+    --gray-mid: #2A2A2A;
+    --white: #FFFFFF;
+    --card-bg: #1A1A1A;
+    --card-text: #FFFFFF;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%; overflow: hidden;
+    background: var(--white);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: var(--dark);
+    cursor: none;
+  }
+
+  .cursor {
+    width: 12px; height: 12px;
+    background: var(--vibra-green);
+    border-radius: 50%;
+    position: fixed; top: 0; left: 0;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%,-50%);
+    transition: transform 0.1s, width 0.2s, height 0.2s;
+  }
+  .cursor.big { width: 40px; height: 40px; background: transparent; border: 2px solid var(--vibra-green); }
+
+  #deck {
+    width: 100vw; height: 100vh;
+    position: relative; overflow: hidden;
+  }
+
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateY(20px) scale(0.98);
+  }
+  .slide.active {
+    opacity: 1; pointer-events: all;
+    transform: translateY(0) scale(1);
+  }
+  .slide.exit {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.98);
+  }
+  #blackout {
+    position: fixed; inset: 0;
+    background: #000;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+  #blackout.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .bg-video {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    opacity: 0.12;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .bg-video-dark { opacity: 0.18; }
+
+  #progress {
+    position: fixed; top: 0; left: 0; height: 3px;
+    background: linear-gradient(90deg, var(--vibra-green), var(--sf-blue));
+    z-index: 100;
+    transition: width 0.5s ease;
+  }
+
+  #counter {
+    position: fixed; bottom: 28px; right: 36px;
+    font-size: 11px; letter-spacing: 3px;
+    color: rgba(0,0,0,0.3);
+    z-index: 100;
+    font-weight: 300;
+  }
+
+  .nav-btn {
+    position: fixed; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer;
+    padding: 20px; z-index: 100; opacity: 0.3;
+    transition: opacity 0.2s;
+  }
+  .nav-btn:hover { opacity: 1; }
+  #nav-prev { left: 20px; }
+  #nav-next { right: 20px; }
+  .nav-btn svg { width: 28px; height: 28px; fill: var(--dark); }
+
+  #sf-badge {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    z-index: 100;
+    display: flex; align-items: center;
+    font-size: 11px; letter-spacing: 3px;
+    color: rgba(0,0,0,0.25);
+    font-weight: 300;
+  }
+
+  #dot-nav {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 10px; z-index: 100;
+  }
+  .dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: rgba(0,0,0,0.2);
+    transition: background 0.2s, width 0.2s;
+    cursor: pointer;
+  }
+  .dot.active { background: var(--vibra-green); width: 20px; border-radius: 3px; }
+
+  /* ===================== SLIDE 1 — CAPA ===================== */
+  .s1-bg {
+    position: absolute; inset: 0;
+    background: #003320;
+  }
+  .s1-bg-img {
+    position: absolute; inset: 0;
+    z-index: 0;
+  }
+  .s1-bg-img img {
+    width: 100%; height: 100%;
+    object-fit: cover; object-position: center;
+    opacity: 0.35;
+  }
+  .s1-bg::before {
+    content: '';
+    position: absolute; inset: 0; z-index: 1;
+    background: linear-gradient(100deg, rgba(0,51,32,0.95) 0%, rgba(0,51,32,0.85) 35%, rgba(0,166,81,0.4) 70%, transparent 100%);
+  }
+  .s1-bg::after {
+    content: '';
+    position: absolute; inset: 0; z-index: 2;
+    background: radial-gradient(ellipse at 80% 20%, rgba(1,118,211,0.2) 0%, transparent 50%);
+  }
+  .s1-content {
+    position: relative; z-index: 3;
+    width: 100vw; height: 100vh;
+    display: flex; align-items: center;
+    padding: 80px;
+  }
+  .s1-left {
+    max-width: 60%;
+  }
+  .s1-logos {
+    display: flex; align-items: center; gap: 24px;
+    margin-bottom: 48px;
+  }
+  .s1-logos img {
+    height: 48px; object-fit: contain;
+  }
+  .s1-logos img.sf-logo {
+    height: 40px;
+  }
+  .brand-x {
+    font-size: 24px; color: rgba(255,255,255,0.4);
+    font-weight: 100;
+  }
+  .s1-eyebrow {
+    font-size: 11px; letter-spacing: 5px;
+    color: rgba(255,255,255,0.7); text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .s1-headline {
+    font-size: clamp(52px, 6vw, 88px);
+    font-weight: 900; line-height: 1;
+    letter-spacing: -3px;
+    color: var(--white);
+    margin-bottom: 32px;
+  }
+  .s1-headline span { color: var(--gold); }
+  .s1-sub {
+    font-size: 18px; line-height: 1.7;
+    color: rgba(255,255,255,0.8);
+    max-width: 520px;
+    font-weight: 300;
+  }
+  .s1-divider {
+    width: 60px; height: 3px;
+    background: var(--gold);
+    margin: 32px 0;
+  }
+
+  /* ===================== SLIDE 2 — PERFORMANCE ===================== */
+  .s2-bg {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, #F8FBF8 0%, #EDF5ED 100%);
+  }
+  .s2-content {
+    position: relative; z-index: 2;
+    width: 100vw; height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    padding: 70px 80px;
+    align-items: center;
+  }
+  .slide-label {
+    font-size: 10px; letter-spacing: 5px;
+    color: var(--vibra-green); text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .s2-left-col {
+    display: flex; flex-direction: column;
+    justify-content: center;
+  }
+  .s2-headline {
+    font-size: clamp(28px, 3.5vw, 44px);
+    font-weight: 800; line-height: 1.15;
+    letter-spacing: -1.5px;
+    color: var(--dark);
+    margin-bottom: 32px;
+  }
+  .s2-headline span { color: var(--vibra-green); }
+  .s2-subtitle {
+    font-size: 15px; line-height: 1.7;
+    color: rgba(0,0,0,0.55);
+    margin-bottom: 40px;
+    max-width: 420px;
+  }
+  .fuel-metrics {
+    display: flex; flex-direction: column;
+    gap: 20px;
+  }
+  .fuel-metric {
+    display: flex; flex-direction: column;
+    gap: 6px;
+  }
+  .fuel-metric-header {
+    display: flex; justify-content: space-between;
+    align-items: baseline;
+  }
+  .fuel-metric-label {
+    font-size: 12px; font-weight: 600;
+    color: rgba(0,0,0,0.6);
+    letter-spacing: 0.5px;
+  }
+  .fuel-metric-value {
+    font-size: 20px; font-weight: 900;
+    color: var(--dark);
+    letter-spacing: -0.5px;
+  }
+  .fuel-bar {
+    height: 28px;
+    background: #E8E8E8;
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+  }
+  .fuel-fill {
+    height: 100%;
+    border-radius: 14px;
+    position: relative;
+    width: 0;
+    transition: width 2s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(90deg, var(--vibra-green) 0%, var(--vibra-green-light) 60%, #FFC107 85%, #FF5722 100%);
+  }
+  .fuel-fill.critical {
+    background: linear-gradient(90deg, var(--vibra-green) 0%, #FFC107 50%, #FF5722 80%, #D32F2F 100%);
+  }
+  .fuel-fill::after {
+    content: '';
+    position: absolute; top: 2px; left: 4px; right: 4px; height: 8px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 100%);
+    border-radius: 8px;
+  }
+  .fuel-target {
+    position: absolute; top: 0; bottom: 0;
+    width: 3px; background: var(--vibra-green);
+    border-radius: 2px;
+    z-index: 2;
+  }
+  .fuel-target::before {
+    content: attr(data-label);
+    position: absolute; top: -18px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px; font-weight: 700;
+    color: var(--vibra-green);
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+  }
+
+  /* Right col - big number + chart */
+  .s2-right-col {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 32px;
+  }
+  .s2-big-metric {
+    text-align: center;
+  }
+  .s2-big-number {
+    font-size: clamp(80px, 12vw, 140px);
+    font-weight: 900; letter-spacing: -4px;
+    line-height: 0.9;
+    color: var(--dark);
+  }
+  .s2-big-number span {
+    color: var(--vibra-green);
+  }
+  .s2-big-label {
+    font-size: 14px; letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(0,0,0,0.4);
+    margin-top: 8px;
+    font-weight: 500;
+  }
+  .s2-comparison {
+    display: flex; gap: 24px;
+    align-items: flex-end;
+    width: 100%; max-width: 340px;
+    height: 200px;
+    padding-top: 32px;
+  }
+  .comparison-bar-wrap {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; gap: 8px;
+    height: 100%;
+    justify-content: flex-end;
+  }
+  .comparison-bar {
+    width: 100%;
+    border-radius: 12px;
+    display: flex; align-items: flex-end; justify-content: center;
+    padding-bottom: 12px;
+    transition: height 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 0;
+  }
+  .comparison-bar.current {
+    background: linear-gradient(180deg, #FF8A65 0%, #FF5722 100%);
+  }
+  .comparison-bar.target {
+    background: linear-gradient(180deg, var(--vibra-green-light) 0%, var(--vibra-green) 100%);
+  }
+  .comparison-bar-value {
+    font-size: 22px; font-weight: 900;
+    color: var(--white);
+    letter-spacing: -1px;
+  }
+  .comparison-bar-label {
+    font-size: 11px; font-weight: 600;
+    color: rgba(0,0,0,0.5);
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+
+  /* ===================== SLIDE 3 — ANALOGIA ===================== */
+  .s3-bg {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, #0a1a0f 0%, #003d20 50%, #00522b 100%);
+  }
+  .s3-bg::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 80% 20%, rgba(0,166,81,0.15) 0%, transparent 60%),
+                radial-gradient(ellipse at 20% 80%, rgba(245,166,35,0.08) 0%, transparent 50%);
+  }
+  .s3-number {
+    opacity: 0; transform: scale(0.7);
+    transition: none;
+    animation-delay: var(--d, 0.3s);
+  }
+  .slide.active .s3-number {
+    animation: numberPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) var(--d, 0.3s) forwards,
+               glowPulse 3s ease-in-out 2s infinite;
+  }
+  @keyframes numberPop {
+    0% { opacity: 0; transform: scale(0.7); text-shadow: none; }
+    60% { opacity: 1; transform: scale(1.08); }
+    100% { opacity: 1; transform: scale(1); text-shadow: 0 0 20px rgba(255,255,255,0.6), 0 0 40px rgba(255,255,255,0.3); }
+  }
+  @keyframes glowPulse {
+    0%, 100% { text-shadow: 0 0 15px rgba(255,255,255,0.5), 0 0 30px rgba(255,255,255,0.2); }
+    50% { text-shadow: 0 0 25px rgba(255,255,255,0.7), 0 0 50px rgba(255,255,255,0.4), 0 0 70px rgba(255,255,255,0.15); }
+  }
+  .s3-content {
+    position: relative; z-index: 2;
+    width: 100vw; height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 60px 100px;
+    text-align: center;
+  }
+
+  /* ===================== SLIDE 3 — MATRIZ HABILITA × RESOLVE ===================== */
+
+  /* ===================== SLIDE 5 — ROADMAP OVERVIEW ===================== */
+  .s5-bg {
+    position: absolute; inset: 0;
+    background: var(--white);
+  }
+  .s5-content {
+    position: relative; z-index: 2;
+    width: 100vw; height: 100vh;
+    display: flex; flex-direction: column;
+    padding: 44px 50px 20px;
+  }
+  .s5-header {
+    margin-bottom: 12px;
+  }
+  .s5-title {
+    font-size: clamp(28px, 3.5vw, 48px);
+    font-weight: 800; letter-spacing: -1.5px;
+    line-height: 1.1;
+    color: var(--dark);
+  }
+  .s5-title span { color: var(--vibra-green); }
+  /* Gantt Timeline */
+  .gantt-container {
+    flex: 1;
+    display: flex; flex-direction: column;
+    gap: 8px;
+    overflow: hidden;
+  }
+  .gantt-phases-header {
+    display: grid;
+    grid-template-columns: 200px repeat(12, 1fr);
+    gap: 2px;
+    align-items: center;
+  }
+  .gantt-label-col { }
+  .gantt-phase-label {
+    text-align: center;
+    padding: 4px 0;
+  }
+  .gantt-grid {
+    display: grid;
+    grid-template-columns: 200px repeat(12, 1fr);
+    gap: 4px 2px;
+    flex: 1;
+    align-content: center;
+  }
+  .gantt-row-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: rgba(0,0,0,0.7);
+    display: flex; align-items: center;
+    padding-right: 14px;
+    grid-column: 1;
+  }
+  .gantt-bar {
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.95);
+    display: flex; align-items: center;
+    min-height: 44px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+  }
+  .gantt-bar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  }
+  .gantt-bar .bar-deliverables {
+    position: absolute;
+    bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%) translateY(4px);
+    padding: 10px 16px;
+    font-size: 13px; font-weight: 600;
+    color: var(--dark);
+    background: #FFF;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    border-bottom: 3px solid var(--gold);
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 10;
+    pointer-events: none;
+  }
+  .gantt-bar:hover .bar-deliverables {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ===================== SLIDE 6-7 — FASES CONSOLIDADAS (TABELA DIAGRAMÁTICA) ===================== */
+  .fase-consolidated {
+    position: relative; z-index: 2;
+    width: 100vw; height: 100vh;
+    display: flex; flex-direction: column;
+    padding: 40px 44px;
+  }
+  .fase-consolidated-bg {
+    position: absolute; inset: 0;
+    background-size: cover;
+    background-position: center;
+    filter: brightness(0.18);
+  }
+  .fase-consolidated-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(0,51,32,0.88) 0%, rgba(0,0,0,0.85) 100%);
+  }
+  .fase-consolidated-header {
+    position: relative; z-index: 2;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px;
+  }
+  .fase-consolidated-header h2 {
+    font-size: clamp(28px, 3.5vw, 46px);
+    font-weight: 800; letter-spacing: -1.5px;
+    color: #FFF; line-height: 1.1;
+  }
+  .fase-consolidated-header h2 span { color: var(--gold); }
+  .fase-badge {
+    padding: 10px 24px;
+    border-radius: 24px;
+    font-size: 13px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: #FFF;
+  }
+  .fase-badge.f12 { background: linear-gradient(90deg, var(--vibra-green), var(--sf-blue)); }
+  .fase-badge.f34 { background: linear-gradient(90deg, #E67E22, #8E44AD); }
+  .diagram-table {
+    position: relative; z-index: 2;
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto repeat(8, minmax(0, 1fr));
+    gap: 4px;
+    overflow: hidden;
+  }
+  .diagram-table-header {
+    display: grid;
+    grid-template-columns: 160px 1fr 1fr 1fr 1fr;
+    gap: 3px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .diagram-table-header span {
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    padding: 0 16px;
+  }
+  .diagram-row {
+    display: grid;
+    grid-template-columns: 160px 1fr 1fr 1fr 1fr;
+    gap: 3px;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+  .diagram-row:hover { transform: translateX(4px); }
+  .diagram-row-label {
+    background: rgba(255,255,255,0.06);
+    padding: 12px 16px;
+    display: flex; align-items: center; gap: 12px;
+    border-radius: 10px 0 0 10px;
+  }
+  .diagram-row-label .row-num {
+    font-size: 20px; font-weight: 900;
+    color: var(--gold); line-height: 1;
+  }
+  .diagram-row-label .row-title {
+    font-size: 13px; font-weight: 700;
+    color: #FFF; line-height: 1.3;
+  }
+  .diagram-table-header span:nth-child(4) {
+    color: var(--vibra-green-light);
+  }
+  .diagram-cell {
+    background: rgba(255,255,255,0.04);
+    padding: 10px 12px;
+    font-size: 13px; line-height: 1.5;
+    color: rgba(255,255,255,0.85);
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .diagram-cell:last-child { border-radius: 0 10px 10px 0; }
+  .diagram-cell strong {
+    color: var(--vibra-green); font-weight: 700;
+  }
+  .diagram-cell .cell-highlight {
+    display: inline-block;
+    background: rgba(0,166,81,0.18);
+    color: var(--vibra-green-light);
+    padding: 3px 12px;
+    border-radius: 4px;
+    font-size: 12px; font-weight: 700;
+    margin-top: 5px;
+  }
+  .diagram-row .diagram-cell:nth-child(4) {
+    background: rgba(0,166,81,0.08);
+    color: rgba(255,255,255,0.95);
+    font-style: italic;
+    border-left: 2px solid var(--vibra-green);
+  }
+
+  /* ===================== SLIDE 10 — BENEFICIOS CONSOLIDADOS ===================== */
+  .s10-bg {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, #F8FFF8 0%, #E8F5E9 100%);
+  }
+  .s10-content {
+    position: relative; z-index: 2;
+    width: 100vw; height: 100vh;
+    display: flex; flex-direction: column;
+    padding: 44px 50px;
+  }
+  .s10-title {
+    font-size: clamp(28px, 3.5vw, 48px);
+    font-weight: 800; letter-spacing: -1.5px;
+    color: var(--dark);
+    margin-bottom: 24px;
+  }
+  .s10-title span { color: var(--vibra-green); }
+  .benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    flex: 1;
+  }
+  .benefit-card {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 20px 20px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    display: flex; flex-direction: column;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .benefit-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 32px rgba(0,166,81,0.15);
+  }
+  .benefit-title {
+    font-size: 18px; font-weight: 800;
+    margin-bottom: 8px; color: var(--dark);
+    letter-spacing: -0.3px;
+  }
+  .benefit-metric {
+    margin-top: 8px;
+    font-size: clamp(36px,4vw,52px); font-weight: 900;
+    color: var(--vibra-green);
+    letter-spacing: -2px;
+    line-height: 1;
+  }
+  .benefit-metric-label {
+    font-size: 13px;
+    color: rgba(0,0,0,0.5);
+    line-height: 1.4;
+    margin-top: 4px;
+  }
+  .benefit-impact {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    font-size: 18px;
+    line-height: 1.6;
+    color: rgba(0,0,0,0.7);
+    flex: 1;
+  }
+  .benefit-impact strong {
+    color: var(--dark);
+    font-weight: 700;
+  }
+
+  /* ===================== SLIDE 11 — CIERRE ===================== */
+  .s11-bg {
+    position: absolute; inset: 0;
+    background: var(--white);
+  }
+  .s11-content {
+    position: relative; z-index: 2;
+    width: 100vw; height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .s11-glass {
+    width: 60%;
+    display: flex; flex-direction: column;
+    align-items: center; text-align: center;
+    padding: 80px 60px;
+  }
+  .s11-logos {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 40px;
+  }
+  .s11-logos .logo-text {
+    font-size: 28px; font-weight: 900;
+    letter-spacing: -1px;
+  }
+  .s11-logos .logo-text.vibra { color: var(--vibra-green); font-style: italic; }
+  .s11-logos .logo-text.sf { color: var(--sf-blue); }
+  .s11-main {
+    font-size: clamp(44px, 6vw, 88px);
+    font-weight: 900; letter-spacing: -3px; line-height: 1;
+    margin-bottom: 32px;
+    color: var(--dark);
+  }
+  .s11-main span { color: var(--vibra-green); }
+  .s11-sub {
+    font-size: clamp(14px, 1.6vw, 18px);
+    font-weight: 300; line-height: 1.8;
+    color: rgba(0,0,0,0.6);
+    max-width: 600px; margin-bottom: 48px;
+  }
+  .btn-primary {
+    background: var(--vibra-green); color: var(--white);
+    border: none; padding: 18px 48px;
+    font-size: 12px; letter-spacing: 3px;
+    text-transform: uppercase; font-weight: 700;
+    cursor: pointer; transition: background 0.2s;
+    font-family: inherit; border-radius: 4px;
+  }
+  .btn-primary:hover { background: var(--vibra-green-dark); }
+
+  /* ===================== MASCOTS ===================== */
+  .mascot {
+    position: absolute;
+    z-index: 5;
+    pointer-events: none;
+    object-fit: contain;
+  }
+  .mascot-s1 {
+    bottom: -10px; right: 60px;
+    height: 38%;
+    opacity: 0.9;
+  }
+  .mascot-s5 {
+    bottom: 20px; left: 40px;
+    height: 18%;
+    opacity: 0.7;
+  }
+  .mascot-s11 {
+    bottom: 30px; right: 60px;
+    height: 32%;
+    opacity: 0.85;
+  }
+
+  /* ===================== ANIMATIONS ===================== */
+  @keyframes countUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .slide.active .fuel-metric {
+    animation: countUp 0.5s ease forwards;
+    opacity: 0;
+  }
+  .slide.active .fuel-metric:nth-child(1) { animation-delay: 0.2s; }
+  .slide.active .fuel-metric:nth-child(2) { animation-delay: 0.4s; }
+  .slide.active .fuel-metric:nth-child(3) { animation-delay: 0.6s; }
+  .slide.active .fuel-metric:nth-child(4) { animation-delay: 0.8s; }
+
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes ganttGrow {
+    from { opacity: 0; transform: scaleX(0); }
+    to { opacity: 1; transform: scaleX(1); }
+  }
+  @keyframes ganttPulse {
+    0%, 100% { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    50% { box-shadow: 0 4px 20px rgba(0,166,81,0.3); }
+  }
+  @keyframes dotAppear {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.8); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @keyframes dotPulseGlow {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(255,255,255,0.9), 0 0 8px var(--gold); }
+    50% { box-shadow: 0 0 0 5px rgba(255,255,255,0.5), 0 0 18px var(--gold), 0 0 30px rgba(245,166,35,0.3); }
+  }
+  .gantt-bar::before {
+    content: '';
+    position: absolute;
+    right: -6px; top: 50%; transform: translateY(-50%) scale(0);
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.9), 0 0 8px var(--gold);
+    opacity: 0;
+    z-index: 3;
+    cursor: pointer;
+  }
+  .slide.active .gantt-bar::before {
+    animation: dotAppear 0.4s 0.8s ease forwards, dotPulseGlow 1.8s 1.2s ease-in-out infinite;
+  }
+  .slide.active .gantt-bar {
+    animation: ganttGrow 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards,
+               ganttPulse 2s ease-in-out 1.5s 1;
+    opacity: 0;
+    transform-origin: left center;
+  }
+  .slide.active .gb1 { animation-delay: 0.2s, 1.7s; }
+  .slide.active .gb2 { animation-delay: 0.4s, 1.9s; }
+  .slide.active .gb3 { animation-delay: 0.5s, 2.0s; }
+  .slide.active .gb4 { animation-delay: 0.7s, 2.2s; }
+  .slide.active .gb5 { animation-delay: 0.85s, 2.35s; }
+  .slide.active .gb6 { animation-delay: 0.4s, 1.9s; }
+  .slide.active .gb7 { animation-delay: 1.1s, 2.6s; }
+  .slide.active .gb8 { animation-delay: 1.2s, 2.7s; }
+  .slide.active .gb9 { animation-delay: 1.35s, 2.85s; }
+  .slide.active .gb10 { animation-delay: 1.5s, 3.0s; }
+  .slide.active .gb11 { animation-delay: 1.7s, 3.2s; }
+
+  .slide.active .diagram-row {
+    animation: fadeSlideUp 0.4s ease forwards;
+    opacity: 0;
+  }
+  .slide.active .diagram-row:nth-child(2) { animation-delay: 0.1s; }
+  .slide.active .diagram-row:nth-child(3) { animation-delay: 0.18s; }
+  .slide.active .diagram-row:nth-child(4) { animation-delay: 0.26s; }
+  .slide.active .diagram-row:nth-child(5) { animation-delay: 0.34s; }
+  .slide.active .diagram-row:nth-child(6) { animation-delay: 0.42s; }
+  .slide.active .diagram-row:nth-child(7) { animation-delay: 0.50s; }
+  .slide.active .diagram-row:nth-child(8) { animation-delay: 0.58s; }
+  .slide.active .diagram-row:nth-child(9) { animation-delay: 0.66s; }
+
+  .slide.active .benefit-card {
+    animation: fadeSlideUp 0.5s ease forwards;
+    opacity: 0;
+  }
+  .slide.active .benefit-card:nth-child(1) { animation-delay: 0.1s; }
+  .slide.active .benefit-card:nth-child(2) { animation-delay: 0.2s; }
+  .slide.active .benefit-card:nth-child(3) { animation-delay: 0.3s; }
+  .slide.active .benefit-card:nth-child(4) { animation-delay: 0.4s; }
+  .slide.active .benefit-card:nth-child(5) { animation-delay: 0.5s; }
+  .slide.active .benefit-card:nth-child(6) { animation-delay: 0.6s; }
+
+  .slide.active .s4-item {
+    animation: fadeSlideUp 0.4s ease forwards;
+    opacity: 0;
+  }
+  .slide.active .s4-item:nth-child(1) { animation-delay: 0.15s; }
+  .slide.active .s4-item:nth-child(2) { animation-delay: 0.3s; }
+  .slide.active .s4-item:nth-child(3) { animation-delay: 0.45s; }
+  .slide.active .s4-item:nth-child(4) { animation-delay: 0.6s; }
+  .slide.active .s4-item:nth-child(5) { animation-delay: 0.75s; }
+
+  /* Scrollbar for fase cards */
+  .fase-right::-webkit-scrollbar { width: 4px; }
+  .fase-right::-webkit-scrollbar-track { background: transparent; }
+  .fase-right::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
+
+  /* ===================== RESPONSIVIDADE ===================== */
+  @media (max-height: 900px) {
+    .s1-content { padding: 50px 60px; }
+    .s1-logos { margin-bottom: 28px; }
+    .s1-headline { font-size: clamp(40px, 5vw, 68px); margin-bottom: 20px; }
+    .s1-divider { margin: 20px 0; }
+    .s1-logos img { height: 38px; }
+    .s1-logos img.sf-logo { height: 32px; }
+
+    .s2-content { padding: 40px 50px; gap: 40px; }
+    .s2-headline { margin-bottom: 20px; }
+    .s2-subtitle { margin-bottom: 24px; }
+    .s2-comparison { height: 150px; }
+    .s2-big-number { font-size: clamp(60px, 10vw, 100px); }
+
+    .s5-content { padding: 36px 40px 20px; }
+    .s5-header { margin-bottom: 8px; }
+    .s5-title { font-size: clamp(24px, 3vw, 38px); }
+    .gantt-grid { gap: 3px 2px; }
+    .gantt-bar { min-height: 36px; padding: 6px 12px; font-size: 12px; }
+    .gantt-row-label { font-size: 12px; }
+
+    .fase-consolidated { padding: 36px 40px; }
+    .fase-consolidated-header h2 { font-size: clamp(22px, 3vw, 36px); }
+    .diagram-row { grid-template-columns: 140px repeat(4, 1fr); }
+    .diagram-cell { font-size: 13px; padding: 10px 14px; }
+    .diagram-row-label { padding: 10px 14px; }
+    .row-title { font-size: 13px; }
+
+    .s10-content { padding: 36px 40px; }
+    .s10-title { font-size: clamp(24px, 3vw, 38px); }
+    .benefits-grid { gap: 14px; }
+    .benefit-card { padding: 16px; }
+    .benefit-metric { font-size: clamp(28px, 3.5vw, 42px); }
+    .benefit-impact { font-size: 15px; margin-top: 12px; padding-top: 12px; }
+  }
+
+  @media (max-height: 768px) {
+    .s1-content { padding: 36px 44px; }
+    .s1-logos { margin-bottom: 20px; }
+    .s1-headline { font-size: clamp(36px, 4.5vw, 56px); margin-bottom: 16px; }
+    .s1-eyebrow { margin-bottom: 16px; }
+    .s1-sub { font-size: 15px; }
+    .s1-divider { margin: 16px 0; }
+
+    .s2-content { padding: 30px 40px; gap: 30px; }
+    .s2-comparison { height: 120px; }
+    .fuel-bar { height: 22px; }
+    .fuel-metrics { gap: 14px; }
+
+    .s5-content { padding: 28px 30px 16px; }
+    .s5-title { font-size: clamp(20px, 2.5vw, 32px); }
+    .gantt-grid { gap: 2px 2px; }
+    .gantt-bar { min-height: 30px; padding: 4px 10px; font-size: 11px; }
+    .gantt-row-label { font-size: 11px; }
+    .gantt-phases-header { gap: 1px; }
+    .gantt-phase-label span { padding: 4px 12px; font-size: 11px; }
+
+    .fase-consolidated { padding: 28px 30px; }
+    .diagram-row { grid-template-columns: 120px repeat(4, 1fr); }
+    .diagram-table-header span { font-size: 9px; padding: 6px 8px; }
+    .diagram-cell { font-size: 11px; padding: 6px 8px; }
+    .diagram-row-label { padding: 6px 8px; }
+    .row-num { font-size: 10px; width: 20px; height: 20px; }
+    .row-title { font-size: 11px; }
+
+    .s10-content { padding: 28px 30px; }
+    .benefits-grid { gap: 10px; }
+    .benefit-card { padding: 14px; border-radius: 12px; }
+    .benefit-metric { font-size: clamp(24px, 3vw, 36px); }
+    .benefit-impact { font-size: 14px; margin-top: 10px; padding-top: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div id="progress"></div>
+<div id="sf-badge">
+  <img src="logo-vibra-green.png" alt="Vibra" id="badge-vibra" style="height:22px; object-fit:contain; vertical-align:middle; margin-right:14px;">
+  <span id="badge-x" style="opacity:0.25; font-size:16px;">&times;</span>
+  <img src="logo-salesforce.png" alt="Salesforce" id="badge-sf" style="height:28px; object-fit:contain; vertical-align:middle; margin-left:14px;">
+</div>
+
+<div id="deck">
+
+  <!-- ===================== SLIDE 1 — CAPA ===================== -->
+  <div class="slide active" id="slide-1">
+    <div class="s1-bg"></div>
+    <video class="bg-video bg-video-dark" autoplay muted loop playsinline><source src="bg-video-turbine.mp4" type="video/mp4"></video>
+    <div class="s1-content">
+      <div class="s1-left">
+        <div class="s1-logos">
+          <img src="logo-vibra-white.png" alt="Vibra Energia">
+          <span class="brand-x">&times;</span>
+          <img src="logo-salesforce.png" alt="Salesforce" class="sf-logo">
+        </div>
+        <div class="s1-eyebrow">Nova Org &mdash; Roadmap Executivo</div>
+        <h1 class="s1-headline">Nova Org.<br>Nova <span>era.</span></h1>
+        <div class="s1-divider"></div>
+        <p class="s1-sub">Roadmap de transformação: Fundacional, Sales Cloud, Service Cloud e Inteligência Artificial em 4 fases estratégicas.</p>
+      </div>
+    </div>
+    <img src="mascot-bras.png" alt="" class="mascot mascot-s1">
+  </div>
+
+  <!-- ===================== SLIDE 2 — PERFORMANCE ===================== -->
+  <div class="slide" id="slide-2">
+    <div class="s2-bg"></div>
+    <div class="s2-content">
+      <div class="s2-left-col">
+        <div class="slide-label">01 &mdash; Performance Atual</div>
+        <h2 class="s2-headline">O motor da operação precisa de uma <span>revisão completa</span></h2>
+        <p class="s2-subtitle">Assim como um motor sob estresse, a plataforma atual opera acima dos limites — consumindo recursos, travando processos e retardando a operação comercial.</p>
+        <div class="fuel-metrics">
+          <div class="fuel-metric">
+            <div class="fuel-metric-header">
+              <span class="fuel-metric-label">Governor Limit Errors / mês</span>
+              <span class="fuel-metric-value" data-count="142607">0</span>
+            </div>
+            <div class="fuel-bar">
+              <div class="fuel-fill critical" data-width="92"></div>
+              <div class="fuel-target" style="left:15%" data-label="META: &lt;1.000"></div>
+            </div>
+          </div>
+          <div class="fuel-metric">
+            <div class="fuel-metric-header">
+              <span class="fuel-metric-label">Execuções Apex &gt; 5 segundos</span>
+              <span class="fuel-metric-value" data-count="80.7" data-suffix="%">0</span>
+            </div>
+            <div class="fuel-bar">
+              <div class="fuel-fill critical" data-width="81"></div>
+              <div class="fuel-target" style="left:10%" data-label="META: &lt;5%"></div>
+            </div>
+          </div>
+          <div class="fuel-metric">
+            <div class="fuel-metric-header">
+              <span class="fuel-metric-label">Callouts com falha / mês</span>
+              <span class="fuel-metric-value" data-count="17724">0</span>
+            </div>
+            <div class="fuel-bar">
+              <div class="fuel-fill" data-width="65"></div>
+              <div class="fuel-target" style="left:8%" data-label="META: &lt;500"></div>
+            </div>
+          </div>
+          <div class="fuel-metric">
+            <div class="fuel-metric-header">
+              <span class="fuel-metric-label">Tempo por Release</span>
+              <span class="fuel-metric-value" data-count="18" data-suffix=" sem">0</span>
+            </div>
+            <div class="fuel-bar">
+              <div class="fuel-fill" data-width="75"></div>
+              <div class="fuel-target" style="left:17%" data-label="META: 3 sem"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="s2-right-col">
+        <div class="s2-big-metric">
+          <div class="s2-big-number"><span data-count="80.7" data-suffix="%">0</span></div>
+          <div class="s2-big-label">Execuções lentas (&gt;5s)</div>
+        </div>
+        <div class="s2-comparison">
+          <div class="comparison-bar-wrap">
+            <div class="comparison-bar current" data-height="85">
+              <span class="comparison-bar-value">80,7%</span>
+            </div>
+            <span class="comparison-bar-label">Hoje</span>
+          </div>
+          <div class="comparison-bar-wrap">
+            <div class="comparison-bar target" data-height="15">
+              <span class="comparison-bar-value">&lt;5%</span>
+            </div>
+            <span class="comparison-bar-label">Nova Org</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== SLIDE 3 — MATRIZ HABILITA × RESOLVE ===================== -->
+  <div class="slide" id="slide-3">
+    <div class="s3-bg"></div>
+    <video class="bg-video" style="opacity:0.07; mix-blend-mode:screen;" src="bg-video-turbine.mp4" autoplay muted loop playsinline></video>
+    <div style="position:relative; z-index:2; width:100vw; height:100vh; display:grid; grid-template-rows:auto 1fr; padding:44px 56px;">
+      <!-- Header -->
+      <div style="margin-bottom:20px;">
+        <div class="slide-label" style="color: rgba(255,255,255,0.5);">02 &mdash; A Nova Org</div>
+        <h2 style="font-size:clamp(30px,4vw,52px); font-weight:900; color:#FFF; letter-spacing:-2px; line-height:1.1;">O que <span style="color:var(--vibra-green);">habilita</span> &amp; o que <span style="color:var(--gold);">resolve</span></h2>
+      </div>
+      <!-- Main grid -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; height:100%;">
+        <!-- COLUNA HABILITA — cards grandes -->
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <div style="background:rgba(0,166,81,0.18); border-radius:14px; padding:16px 24px; border:1px solid rgba(0,166,81,0.3);">
+            <span style="font-size:16px; letter-spacing:3px; color:#FFF; text-transform:uppercase; font-weight:900; text-shadow: 0 0 20px rgba(0,166,81,0.6);">&#9650; O que a Nova Org <span style="color:var(--vibra-green);">habilita</span></span>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; flex:1;">
+            <div style="background:rgba(255,255,255,0.05); border-radius:14px; padding:22px 20px; border-left:3px solid var(--vibra-green); display:flex; flex-direction:column; justify-content:center;">
+              <div class="s3-number" style="--d:0.3s; font-size:clamp(28px,3vw,40px); font-weight:900; color:var(--vibra-green); line-height:1; margin-bottom:8px;">&lt;3s</div>
+              <div style="font-size:15px; font-weight:700; color:#FFF; margin-bottom:4px;">Performance Garantida</div>
+              <div style="font-size:13px; color:rgba(255,255,255,0.6); line-height:1.4;">EPT abaixo de 3 segundos em todas as transações. Zero governor limits.</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.05); border-radius:14px; padding:22px 20px; border-left:3px solid var(--vibra-green); display:flex; flex-direction:column; justify-content:center;">
+              <div class="s3-number" style="--d:0.5s; font-size:clamp(28px,3vw,40px); font-weight:900; color:var(--vibra-green); line-height:1; margin-bottom:8px;">3 sem</div>
+              <div style="font-size:15px; font-weight:700; color:#FFF; margin-bottom:4px;">Velocidade de Entrega</div>
+              <div style="font-size:13px; color:rgba(255,255,255,0.6); line-height:1.4;">Releases em 3 semanas vs 16-20 semanas do modelo atual.</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.05); border-radius:14px; padding:22px 20px; border-left:3px solid var(--gold); display:flex; flex-direction:column; justify-content:center;">
+              <div class="s3-number" style="--d:0.7s; font-size:clamp(28px,3vw,40px); font-weight:900; color:var(--gold); line-height:1; margin-bottom:8px;">84%</div>
+              <div style="font-size:15px; font-weight:700; color:#FFF; margin-bottom:4px;">Forecast Accuracy</div>
+              <div style="font-size:13px; color:rgba(255,255,255,0.6); line-height:1.4;">Forecasting nativo por território, produto e período.</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.05); border-radius:14px; padding:22px 20px; border-left:3px solid var(--gold); display:flex; flex-direction:column; justify-content:center;">
+              <div class="s3-number" style="--d:0.9s; font-size:clamp(28px,3vw,40px); font-weight:900; color:var(--gold); line-height:1; margin-bottom:8px;">31%</div>
+              <div style="font-size:15px; font-weight:700; color:#FFF; margin-bottom:4px;">IA &amp; Agentforce</div>
+              <div style="font-size:13px; color:rgba(255,255,255,0.6); line-height:1.4;">Casos resolvidos autonomamente por agentes de IA.</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.05); border-radius:14px; padding:22px 20px; border-left:3px solid var(--gold); grid-column:span 2; display:flex; align-items:center; gap:20px;">
+              <div class="s3-number" style="--d:1.1s; font-size:clamp(28px,3vw,40px); font-weight:900; color:var(--gold); line-height:1;">360°</div>
+              <div>
+                <div style="font-size:15px; font-weight:700; color:#FFF; margin-bottom:4px;">Visão Completa do Cliente</div>
+                <div style="font-size:13px; color:rgba(255,255,255,0.6); line-height:1.4;">Data Cloud Zero Copy + SAP. Pedidos, volumes, títulos, histórico — tudo na mesma tela.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- COLUNA RESOLVE — problemas com impacto -->
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <div style="background:rgba(231,76,60,0.15); border-radius:14px; padding:16px 24px; border:1px solid rgba(231,76,60,0.3);">
+            <span style="font-size:16px; letter-spacing:3px; color:#FFF; text-transform:uppercase; font-weight:900; text-shadow: 0 0 20px rgba(231,76,60,0.6);">&#9660; Problemas que a Nova Org <span style="color:#E74C3C;">elimina</span></span>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:10px; flex:1;">
+            <div style="background:rgba(231,76,60,0.08); border-radius:14px; padding:20px 24px; border-left:3px solid #E74C3C; flex:1; display:flex; align-items:center; gap:20px;">
+              <div class="s3-number" style="--d:0.4s; font-size:clamp(36px,4vw,56px); font-weight:900; color:#E74C3C; line-height:1; min-width:110px;">142K</div>
+              <div>
+                <div style="font-size:16px; font-weight:700; color:#FFF; margin-bottom:4px;">Erros de Governor Limit / mês</div>
+                <div style="font-size:14px; color:rgba(255,255,255,0.65); line-height:1.4;">Cada erro é uma negociação travada, um EV frustrado, um cliente esperando.</div>
+              </div>
+            </div>
+            <div style="background:rgba(231,76,60,0.08); border-radius:14px; padding:20px 24px; border-left:3px solid #E74C3C; flex:1; display:flex; align-items:center; gap:20px;">
+              <div class="s3-number" style="--d:0.6s; font-size:clamp(36px,4vw,56px); font-weight:900; color:#E74C3C; line-height:1; min-width:110px;">80,7%</div>
+              <div>
+                <div style="font-size:16px; font-weight:700; color:#FFF; margin-bottom:4px;">Transações acima de 5 segundos</div>
+                <div style="font-size:14px; color:rgba(255,255,255,0.65); line-height:1.4;">O EV espera a cada clique. Multiplique por milhares de negociações/dia.</div>
+              </div>
+            </div>
+            <div style="background:rgba(231,76,60,0.08); border-radius:14px; padding:20px 24px; border-left:3px solid #E74C3C; flex:1; display:flex; align-items:center; gap:20px;">
+              <div class="s3-number" style="--d:0.8s; font-size:clamp(36px,4vw,56px); font-weight:900; color:#E74C3C; line-height:1; min-width:110px;">17.7K</div>
+              <div>
+                <div style="font-size:16px; font-weight:700; color:#FFF; margin-bottom:4px;">Callouts com falha / mês</div>
+                <div style="font-size:14px; color:rgba(255,255,255,0.65); line-height:1.4;">Integrações SAP instáveis que deixam o comercial sem preço e sem pedido.</div>
+              </div>
+            </div>
+            <div style="background:rgba(231,76,60,0.08); border-radius:14px; padding:20px 24px; border-left:3px solid #E74C3C; flex:1; display:flex; align-items:center; gap:20px;">
+              <div class="s3-number" style="--d:1.0s; font-size:clamp(36px,4vw,56px); font-weight:900; color:#E74C3C; line-height:1; min-width:110px;">16-20</div>
+              <div>
+                <div style="font-size:16px; font-weight:700; color:#FFF; margin-bottom:4px;">Semanas por release</div>
+                <div style="font-size:14px; color:rgba(255,255,255,0.65); line-height:1.4;">+35% custo/ponto funcionalidade. Concorrência entrega em 2-3 semanas.</div>
+              </div>
+            </div>
+            <div style="background:rgba(231,76,60,0.08); border-radius:14px; padding:20px 24px; border-left:3px solid #E74C3C; flex:1; display:flex; align-items:center; gap:20px;">
+              <div class="s3-number" style="--d:1.2s; font-size:clamp(36px,4vw,56px); font-weight:900; color:#E74C3C; line-height:1; min-width:110px;">Zero</div>
+              <div>
+                <div style="font-size:16px; font-weight:700; color:#FFF; margin-bottom:4px;">Visibilidade de Pipeline</div>
+                <div style="font-size:14px; color:rgba(255,255,255,0.65); line-height:1.4;">Sem forecast, sem funil. Gestores decidem no escuro. Vendas sem previsibilidade.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== SLIDE 5 — ROADMAP TIMELINE ===================== -->
+  <div class="slide" id="slide-5">
+    <div class="s5-bg"></div>
+    <div class="s5-content">
+      <div class="s5-header">
+        <div class="slide-label" style="color: var(--vibra-green);">03 &mdash; Roadmap</div>
+        <h2 class="s5-title">Visão Geral &mdash; <span>Timeline de Execução</span></h2>
+      </div>
+      <!-- Gantt Timeline -->
+      <div class="gantt-container">
+        <!-- Phase headers -->
+        <div class="gantt-phases-header">
+          <div class="gantt-label-col"></div>
+          <div class="gantt-phase-label" style="grid-column: span 3;">
+            <span style="background:var(--vibra-green); color:#fff; padding:6px 18px; border-radius:8px; font-size:13px; font-weight:700; letter-spacing:1px;">FASE 1</span>
+          </div>
+          <div class="gantt-phase-label" style="grid-column: span 3;">
+            <span style="background:var(--sf-blue); color:#fff; padding:6px 18px; border-radius:8px; font-size:13px; font-weight:700; letter-spacing:1px;">FASE 2</span>
+          </div>
+          <div class="gantt-phase-label" style="grid-column: span 3;">
+            <span style="background:#E67E22; color:#fff; padding:6px 18px; border-radius:8px; font-size:13px; font-weight:700; letter-spacing:1px;">FASE 3</span>
+          </div>
+          <div class="gantt-phase-label" style="grid-column: span 3;">
+            <span style="background:#8E44AD; color:#fff; padding:6px 18px; border-radius:8px; font-size:13px; font-weight:700; letter-spacing:1px;">FASE 4</span>
+          </div>
+        </div>
+        <!-- Gantt rows -->
+        <div class="gantt-grid">
+          <!-- Row: Plan & Design -->
+          <div class="gantt-row-label">Plan & Design</div>
+          <div class="gantt-bar gb1" style="grid-column: 2 / 4; background: #E91E63;">
+            Plan & Design
+            <span class="bar-deliverables">Arquitetura TO-BE &bull; Validação com negócio &bull; Roadmap detalhado</span>
+          </div>
+          <!-- Row: Fundação -->
+          <div class="gantt-row-label">Fundação</div>
+          <div class="gantt-bar gb2" style="grid-column: 3 / 6; background: var(--vibra-green);">
+            Hierarquia, Territórios, V360, Cadastro
+            <span class="bar-deliverables">Perfis &bull; Territórios &bull; Data Cloud Zero Copy &bull; Cadastro Guiado</span>
+          </div>
+          <!-- Row: Integrações Fundacional -->
+          <div class="gantt-row-label">Integrações Fund.</div>
+          <div class="gantt-bar gb3" style="grid-column: 3 / 6; background: #26A69A;">
+            RFB, ANP, SAP Account/Contact
+            <span class="bar-deliverables">Receita Federal &bull; ANP &bull; SAP Account &bull; SAP Contact</span>
+          </div>
+          <!-- Row: Vendas -->
+          <div class="gantt-row-label">Vendas</div>
+          <div class="gantt-bar gb4" style="grid-column: 4 / 8; background: #FF9800;">
+            Leads, NEGs, Pedidos, Forecasting
+            <span class="bar-deliverables">Opportunities &bull; Orders &bull; Forecasting &bull; Pipeline &bull; Carteirização</span>
+          </div>
+          <!-- Row: Integrações Comerciais -->
+          <div class="gantt-row-label">Integrações Comerciais</div>
+          <div class="gantt-bar gb5" style="grid-column: 5 / 8; background: #FF7043;">
+            SAP Preços, NEGs, Pedidos
+            <span class="bar-deliverables">Simulação de Preços &bull; NEGs &bull; Pedidos &bull; SAP real-time</span>
+          </div>
+          <!-- Row: Integração Dados -->
+          <div class="gantt-row-label">Integração Dados</div>
+          <div class="gantt-bar gb6" style="grid-column: 3 / 13; background: linear-gradient(90deg, #00BCD4, #0097A7); opacity:0.75;">
+            MuleSoft API-LED &mdash; Contínuo
+            <span class="bar-deliverables">C4E 1.8 &rarr; 4.0 &bull; Event Driven &bull; Zero Copy SAP &bull; API First</span>
+          </div>
+          <!-- Row: Atendimento Básicos -->
+          <div class="gantt-row-label">Atendimento Básico</div>
+          <div class="gantt-bar gb7" style="grid-column: 7 / 10; background: #42A5F5;">
+            Filas, Skills, Cases, OmniChannel
+            <span class="bar-deliverables">Entitlements &bull; Milestones &bull; OmniChannel &bull; Voice CTI</span>
+          </div>
+          <!-- Row: Integrações Atendimento -->
+          <div class="gantt-row-label">Integ. Atendimento</div>
+          <div class="gantt-bar gb8" style="grid-column: 8 / 10; background: #5C6BC0;">
+            Org Premmia
+            <span class="bar-deliverables">Integração cross-org &bull; Premmia &bull; Service unificado</span>
+          </div>
+          <!-- Row: Canais Digitais -->
+          <div class="gantt-row-label">Canais Digitais & IA</div>
+          <div class="gantt-bar gb9" style="grid-column: 8 / 11; background: #AB47BC;">
+            WhatsApp, Chatbots, Agentforce
+            <span class="bar-deliverables">Digital Engagement &bull; Agentforce &bull; Einstein for Service &bull; 31% autônomo</span>
+          </div>
+          <!-- Row: Comunicação Ativa -->
+          <div class="gantt-row-label">Comunicação Ativa</div>
+          <div class="gantt-bar gb10" style="grid-column: 9 / 12; background: #EC407A;">
+            UCP, Jornadas, Cobrança
+            <span class="bar-deliverables">Marketing Cloud &bull; Jornadas proativas &bull; Cross-sell &bull; Cobrança</span>
+          </div>
+          <!-- Row: Serviços Avançados -->
+          <div class="gantt-row-label">Serviços Avançados</div>
+          <div class="gantt-bar gb11" style="grid-column: 11 / 14; background: #7E57C2;">
+            IA Preditiva, Backoffice, Multi-canal
+            <span class="bar-deliverables">Einstein GPT &bull; IA Generativa &bull; Backoffice integrado &bull; Multi-canal</span>
+          </div>
+        </div>
+        <!-- Benefícios macro por fase -->
+        <div style="margin-top:12px; margin-bottom:4px;">
+          <span style="font-size:12px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:rgba(0,0,0,0.4);">Benefício Macro por Fase</span>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px; padding-top:0; flex:0 0 auto;">
+          <div style="padding:16px 20px; background:rgba(0,166,81,0.07); border-radius:12px; border-left:4px solid var(--vibra-green);">
+            <div style="font-size:11px; font-weight:700; color:rgba(0,0,0,0.35); letter-spacing:1px; margin-bottom:6px;">FASE 1</div>
+            <div style="font-size:16px; font-weight:800; color:var(--vibra-green); margin-bottom:6px;">Fundação Sólida</div>
+            <div style="font-size:14px; color:rgba(0,0,0,0.65); line-height:1.5;">Hierarquia limpa, territórios automatizados, visão 360 do cliente</div>
+          </div>
+          <div style="padding:16px 20px; background:rgba(1,118,211,0.07); border-radius:12px; border-left:4px solid var(--sf-blue);">
+            <div style="font-size:11px; font-weight:700; color:rgba(0,0,0,0.35); letter-spacing:1px; margin-bottom:6px;">FASE 2</div>
+            <div style="font-size:16px; font-weight:800; color:var(--sf-blue); margin-bottom:6px;">Vendas Aceleradas</div>
+            <div style="font-size:14px; color:rgba(0,0,0,0.65); line-height:1.5;">85% menos tempo de fechamento, forecast 84% accuracy</div>
+          </div>
+          <div style="padding:16px 20px; background:rgba(230,126,34,0.07); border-radius:12px; border-left:4px solid #E67E22;">
+            <div style="font-size:11px; font-weight:700; color:rgba(0,0,0,0.35); letter-spacing:1px; margin-bottom:6px;">FASE 3</div>
+            <div style="font-size:16px; font-weight:800; color:#E67E22; margin-bottom:6px;">Atendimento Unificado</div>
+            <div style="font-size:14px; color:rgba(0,0,0,0.65); line-height:1.5;">Zero governor errors, OmniChannel, 31% IA autônoma</div>
+          </div>
+          <div style="padding:16px 20px; background:rgba(142,68,173,0.07); border-radius:12px; border-left:4px solid #8E44AD;">
+            <div style="font-size:11px; font-weight:700; color:rgba(0,0,0,0.35); letter-spacing:1px; margin-bottom:6px;">FASE 4</div>
+            <div style="font-size:16px; font-weight:800; color:#8E44AD; margin-bottom:6px;">IA & Escala</div>
+            <div style="font-size:14px; color:rgba(0,0,0,0.65); line-height:1.5;">Agentforce preditivo, marketing proativo, multi-canal integrado</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== SLIDE 6 — FASES 1 & 2 CONSOLIDADAS ===================== -->
+  <div class="slide" id="slide-6">
+    <div class="fase-consolidated-bg" style="background-image:url('bg-posto.jpg');"></div>
+    <div class="fase-consolidated-overlay"></div>
+    <div class="fase-consolidated">
+      <div class="fase-consolidated-header">
+        <div>
+          <div class="slide-label" style="color: rgba(255,255,255,0.5);">03a &mdash; Fases 1 &amp; 2</div>
+          <h2>Fundação &amp; <span>Vendas</span></h2>
+          <div style="font-size:13px; color:rgba(255,255,255,0.5); margin-top:6px;">Hierarquia, Territórios, V360, Cadastro, NEGs, Pedidos, Pipeline</div>
+        </div>
+        <div class="fase-badge f12">Fase 1 + Fase 2</div>
+      </div>
+      <div class="diagram-table">
+        <div class="diagram-table-header">
+          <span>Tema</span>
+          <span>Problema Atual</span>
+          <span>Habilitador Nova Org</span>
+          <span>Benefício do Negócio</span>
+          <span>Resultado Esperado</span>
+        </div>
+        <div class="diagram-row">
+          <div class="diagram-row-label"><span class="row-num">01</span><span class="row-title">Hierarquia &amp; Perfis</span></div>
+          <div class="diagram-cell">82 perfis e 240 papéis criados ad-hoc</div>
+          <div class="diagram-cell"><strong>Role Hierarchy + Permission Sets</strong></div>
+          <div class="diagram-cell">Menos chamados de TI para liberar acessos; novos colaboradores começam a operar no primeiro dia</div>
+          <div class="diagram-cell">Simplificação radical de acessos<br><span class="cell-highlight">Eliminação de perfis redundantes</span></div>
+        </div>
+        <div class="diagram-row">
+          <div class="diagram-row-label"><span class="row-num">02</span><span class="row-title">Territórios</span></div>
+          <div class="diagram-cell">Rezoneamento manual consome semanas</div>
+          <div class="diagram-cell"><strong>Enterprise Territory Management</strong></div>
+          <div class="diagram-cell">Redistribuição de carteiras em horas; gestor enxerga a receita real por região</div>
+          <div class="diagram-cell">Rezoneamento em horas, não semanas<br><span class="cell-highlight">84% melhoria forecast</span></div>
+        </div>
+        <div class="diagram-row">
+          <div class="diagram-row-label"><span class="row-num">03</span><span class="row-title">Visão 360</span></div>
+          <div class="diagram-cell">Dados fragmentados — pedidos, volumes, títulos ausentes</div>
+          <div class="diagram-cell"><strong>Data Cloud Zero Copy + Account V360</strong></div>
+          <div class="diagram-cell">EV vê pedidos, volume e inadimplência numa única tela — sem pedir relatório a ninguém</div>
+          <div class="diagram-cell">Incorporação completa de dados do cliente<br><span class="cell-highlight">Sem replicação SAP</span></div>
+        </div>
+        <div class="diagram-row">
+          <div class="diagram-row-label"><span class="row-num">04</span><span class="row-title">Cadastro Guiado</span></div>
+          <div class="diagram-cell">Cadastro complexo: RFB, ANP, SAP em telas diferentes</div>
+          <div class="diagram-cell"><strong>OmniStudio FlexCards + OmniScripts</strong></div>
+          <div class="diagram-cell">Cadastro que antes levava 30 min agora conclui em 10; erros de digitação caem pela metade</div>
+          <div class="diagram-cell">Fluxo único com validações inline<br><span class="cell-highlight">34% produtividade</span></div>
+        </div>
+        <div class="diagram-row">
+          <div class="diagram-row-label"><span class="row-num">05</span><span class="row-title">NEGs &amp; Oportunidades</span></div>
+          <div class="diagram-cell">Interface poluída, 80+ campos por tela</div>
+          <div class="diagram-cell"><strong>Opportunity + OmniStudio + SAP Pricing</strong></div>
+          <div class="diagram-cell">Proposta criada em minutos com preço validado na hora — sem esperar aprovação manual de pricing</div>
+          <div class="diagram-cell">Fluxo guiado, pricing em tempo real<br><span class="cell-highlight">85% menos tempo de fechamento</span></div>
+        </div>
+        <div class="diagram-row">
+          <div class="diagram-row-label"><span class="row-num">06</span><span class="row-title">Pedidos &amp; Orders</span></div>
+          <div class="diagram-cell">Tudo tratado como Oportunidade — confusão de dados</div>
+          <div class="diagram-cell"><strong>Order Standard + Order Management</strong></div>
+          <div class="diagram-cell">Pedido Spot separado da negociação — área operacional sabe exatamente o que faturar</div>
+          <div class="diagram-cell">Separação NEG vs Pedido Direto/Spot<br><span class="cell-highlight">30% produtividade</span></div>
+        </div>
+        <div class="diagram-row">
+          <div class="diagram-row-label"><span class="row-num">07</span><span class="row-title">Leads &amp; Pipeline</span></div>
+          <div class="diagram-cell">Sem gestão de funil nem scoring de leads</div>
+          <div class="diagram-cell"><strong>Lead Standard + Einstein Scoring</strong></div>
+          <div class="diagram-cell">Time comercial sabe qual cliente priorizar; oportunidades não ficam esquecidas no funil</div>
+          <div class="diagram-cell">Pipeline visível, conversão otimizada<br><span class="cell-highlight">29% mais pipeline</span></div>
+        </div>
+        <div class="diagram-row">
+          <div class="diagram-row-label"><span class="row-num">08</span><span class="row-title">Forecasting</span></div>
+          <div class="diagram-cell">Gestores sem visibilidade de receita futura</div>
+          <div class="diagram-cell"><strong>Collaborative Forecasting + Territory-based</strong></div>
+          <div class="diagram-cell">Gestor fecha o mês sabendo quanto vai entrar — sem surpresas de meta no último dia</div>
+          <div class="diagram-cell">Previsão por território e produto<br><span class="cell-highlight">84% forecast accuracy</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== SLIDE 7 — FASES 3 & 4 CONSOLIDADAS ===================== -->
+  <div class="slide" id="slide-7">
+    <div class="fase-consolidated-bg" style="background-image:url('bg-tanques.jpg');"></div>
+    <div class="fase-consolidated-overlay" style="background: linear-gradient(135deg, rgba(10,10,10,0.92) 0%, rgba(40,20,60,0.88) 100%);"></div>
+    <div class="fase-consolidated">
+      <div class="fase-consolidated-header">
+        <div>
+          <div class="slide-label" style="color: rgba(255,255,255,0.5);">03b &mdash; Fases 3 &amp; 4</div>
+          <h2>Serviços &amp; <span>Avançado</span></h2>
+          <div style="font-size:13px; color:rgba(255,255,255,0.5); margin-top:6px;">SLA, OmniChannel, Knowledge, Agentforce, WhatsApp, Marketing, IA</div>
+        </div>
+        <div class="fase-badge f34">Fase 3 + Fase 4</div>
+      </div>
+      <div class="diagram-table">
+        <div class="diagram-table-header">
+          <span>Tema</span>
+          <span>Problema Atual</span>
+          <span>Habilitador Nova Org</span>
+          <span>Benefício do Negócio</span>
+          <span>Resultado Esperado</span>
+        </div>
+        <div class="diagram-row">
+          <div class="diagram-row-label"><span class="row-num">01</span><span class="row-title">SLA &amp; Entitlements</span></div>
+          <div class="diagram-cell">SLA customizado = 142.607 governor errors/mês</div>
+          <div class="diagram-cell"><strong>Entitlements nativos + Service Contracts</strong></div>
+          <div class="diagram-cell">Sistema para de travar; atendente não perde o caso no meio do registro</div>
+          <div class="diagram-cell">Zero governor limit errors<br><span class="cell-highlight">Eliminação total do ofensor</span></div>
+        </div>
+        <div class="diagram-row">
+          <div class="diagram-row-label"><span class="row-num">02</span><span class="row-title">OmniChannel</span></div>
+          <div class="diagram-cell">Canais descoordenados — telefone, WhatsApp, email</div>
+          <div class="diagram-cell"><strong>OmniChannel + Skills-Based Routing</strong></div>
+          <div class="diagram-cell">Cliente não precisa repetir o problema — qualquer canal continua de onde parou</div>
+          <div class="diagram-cell">Canal unificado, visibilidade gerencial<br><span class="cell-highlight">33% resolução mais rápida</span></div>
+        </div>
+        <div class="diagram-row">
+          <div class="diagram-row-label"><span class="row-num">03</span><span class="row-title">Knowledge</span></div>
+          <div class="diagram-cell">Sem base de conhecimento — dependência de experiência pessoal</div>
+          <div class="diagram-cell"><strong>Salesforce Knowledge + Data Categories</strong></div>
+          <div class="diagram-cell">Novo atendente encontra a resposta sozinho, sem depender de quem tem mais tempo de casa</div>
+          <div class="diagram-cell">Base que habilita IA e Agentforce<br><span class="cell-highlight">Pré-requisito para Einstein</span></div>
+        </div>
+        <div class="diagram-row">
+          <div class="diagram-row-label"><span class="row-num">04</span><span class="row-title">Agentforce &amp; Bots</span></div>
+          <div class="diagram-cell">Demandas simples ocupam agentes humanos</div>
+          <div class="diagram-cell"><strong>Einstein Bots + Agentforce Autônomo</strong></div>
+          <div class="diagram-cell">Dúvidas simples resolvidas na hora pelo bot — time focado nos casos que realmente precisam de gente</div>
+          <div class="diagram-cell">Resolução autônoma de casos simples<br><span class="cell-highlight">31% casos resolvidos por IA</span></div>
+        </div>
+        <div class="diagram-row">
+          <div class="diagram-row-label"><span class="row-num">05</span><span class="row-title">Einstein Service</span></div>
+          <div class="diagram-cell">Apenas categorização — Summaries e Replies não implementados</div>
+          <div class="diagram-cell"><strong>Case Classification + Work Summaries + Replies</strong></div>
+          <div class="diagram-cell">Atendente ganha 5 min por caso com resumo e resposta sugeridos automaticamente</div>
+          <div class="diagram-cell">3-5 min economizados por caso<br><span class="cell-highlight">34% produtividade</span></div>
+        </div>
+        <div class="diagram-row">
+          <div class="diagram-row-label"><span class="row-num">06</span><span class="row-title">WhatsApp &amp; Digital</span></div>
+          <div class="diagram-cell">Múltiplos números em ferramentas diferentes</div>
+          <div class="diagram-cell"><strong>Digital Engagement + Enhanced Messaging</strong></div>
+          <div class="diagram-cell">Um único WhatsApp da Vibra com histórico completo — cliente fala e a gente sabe quem é</div>
+          <div class="diagram-cell">Centralização, roteamento inteligente<br><span class="cell-highlight">Histórico unificado</span></div>
+        </div>
+        <div class="diagram-row">
+          <div class="diagram-row-label"><span class="row-num">07</span><span class="row-title">Comunicação Ativa</span></div>
+          <div class="diagram-cell">Sem jornadas proativas de relacionamento</div>
+          <div class="diagram-cell"><strong>Marketing Cloud + UCP + Jornadas</strong></div>
+          <div class="diagram-cell">Vibra avisa antes do problema acontecer — cobrança, reabastecimento e oferta chegam no momento certo</div>
+          <div class="diagram-cell">Retenção, cobrança e cross-sell proativos<br><span class="cell-highlight">Multi-canal integrado</span></div>
+        </div>
+        <div class="diagram-row">
+          <div class="diagram-row-label"><span class="row-num">08</span><span class="row-title">IA Preditiva</span></div>
+          <div class="diagram-cell">Atendimento reativo, sem antecipação de demandas</div>
+          <div class="diagram-cell"><strong>Einstein GPT + Data Cloud + Agentforce</strong></div>
+          <div class="diagram-cell">Sistema prevê o que o cliente vai precisar antes dele ligar — atendimento vira prevenção</div>
+          <div class="diagram-cell">Previsão de demandas, respostas generativas<br><span class="cell-highlight">85% produtividade IA</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== SLIDE 10 — BENEFÍCIOS ESTRATÉGICOS ===================== -->
+  <div class="slide" id="slide-10">
+    <div class="s10-bg"></div>
+    <div class="s10-content">
+      <div class="slide-label" style="color: var(--vibra-green);">04 &mdash; Benefícios Esperados</div>
+      <h2 class="s10-title">Antes vs <span>Depois</span> &mdash; Indicadores-Chave</h2>
+      <div class="benefits-grid">
+        <!-- Card 1: Tempo de Fechamento -->
+        <div class="benefit-card">
+          <div class="benefit-title">Tempo de Fechamento</div>
+          <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
+            <div style="flex:1;">
+              <div style="font-size:10px; color:rgba(0,0,0,0.4); margin-bottom:3px;">HOJE</div>
+              <div style="background:#FFCDD2; height:26px; border-radius:6px; width:100%; display:flex; align-items:center; padding:0 10px; font-size:11px; font-weight:700; color:#C62828;">Semanas</div>
+            </div>
+            <div style="font-size:16px; color:rgba(0,0,0,0.15);">&rarr;</div>
+            <div style="flex:1;">
+              <div style="font-size:10px; color:rgba(0,0,0,0.4); margin-bottom:3px;">NOVA ORG</div>
+              <div style="background:#C8E6C9; height:26px; border-radius:6px; width:40%; display:flex; align-items:center; padding:0 10px; font-size:11px; font-weight:700; color:#2E7D32;">Horas</div>
+            </div>
+          </div>
+          <div class="benefit-metric" data-count="85" data-suffix="%">0</div>
+          <div class="benefit-metric-label">redução no ciclo de negociação</div>
+          <div class="benefit-impact">
+            Propostas que demoravam semanas fechadas no mesmo dia. OmniStudio guia o EV passo a passo, pricing real-time elimina idas e vindas com gestores.
+          </div>
+        </div>
+        <!-- Card 2: Produtividade EV -->
+        <div class="benefit-card">
+          <div class="benefit-title">Produtividade do EV</div>
+          <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
+            <div style="flex:1;">
+              <div style="font-size:10px; color:rgba(0,0,0,0.4); margin-bottom:3px;">HOJE</div>
+              <div style="background:#FFCDD2; height:26px; border-radius:6px; width:100%; display:flex; align-items:center; padding:0 10px; font-size:11px; font-weight:700; color:#C62828;">40h manuais/sem</div>
+            </div>
+            <div style="font-size:16px; color:rgba(0,0,0,0.15);">&rarr;</div>
+            <div style="flex:1;">
+              <div style="font-size:10px; color:rgba(0,0,0,0.4); margin-bottom:3px;">NOVA ORG</div>
+              <div style="background:#C8E6C9; height:26px; border-radius:6px; width:38%; display:flex; align-items:center; padding:0 10px; font-size:11px; font-weight:700; color:#2E7D32;">15h</div>
+            </div>
+          </div>
+          <div class="benefit-metric" data-count="25" data-suffix="h">0</div>
+          <div class="benefit-metric-label">devolvidas por EV a cada semana</div>
+          <div class="benefit-impact">
+            Cada EV ganha 25h/semana para vender ao invés de preencher planilhas. Com ~500 EVs, são <strong>12.500h/semana</strong> de capacidade comercial recuperada.
+          </div>
+        </div>
+        <!-- Card 3: Forecast -->
+        <div class="benefit-card">
+          <div class="benefit-title">Forecast Accuracy</div>
+          <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
+            <div style="flex:1;">
+              <div style="font-size:10px; color:rgba(0,0,0,0.4); margin-bottom:3px;">HOJE</div>
+              <div style="background:#FFCDD2; height:26px; border-radius:6px; width:20%; min-width:28px; display:flex; align-items:center; padding:0 10px; font-size:11px; font-weight:700; color:#C62828;">0%</div>
+            </div>
+            <div style="font-size:16px; color:rgba(0,0,0,0.15);">&rarr;</div>
+            <div style="flex:1;">
+              <div style="font-size:10px; color:rgba(0,0,0,0.4); margin-bottom:3px;">NOVA ORG</div>
+              <div style="background:#C8E6C9; height:26px; border-radius:6px; width:84%; display:flex; align-items:center; padding:0 10px; font-size:11px; font-weight:700; color:#2E7D32;">84%</div>
+            </div>
+          </div>
+          <div class="benefit-metric" data-count="84" data-suffix="%">0</div>
+          <div class="benefit-metric-label">acurácia de previsão de receita</div>
+          <div class="benefit-impact">
+            Forecasting nativo por território, produto e período. Gestores deixam de decidir no escuro — pipeline visível, previsão confiável para report ao board.
+          </div>
+        </div>
+        <!-- Card 4: Erros de Plataforma -->
+        <div class="benefit-card">
+          <div class="benefit-title">Estabilidade da Plataforma</div>
+          <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
+            <div style="flex:1;">
+              <div style="font-size:10px; color:rgba(0,0,0,0.4); margin-bottom:3px;">HOJE</div>
+              <div style="background:#FFCDD2; height:26px; border-radius:6px; width:100%; display:flex; align-items:center; padding:0 10px; font-size:11px; font-weight:700; color:#C62828;">142.607/mês</div>
+            </div>
+            <div style="font-size:16px; color:rgba(0,0,0,0.15);">&rarr;</div>
+            <div style="flex:1;">
+              <div style="font-size:10px; color:rgba(0,0,0,0.4); margin-bottom:3px;">NOVA ORG</div>
+              <div style="background:#C8E6C9; height:26px; border-radius:6px; width:8%; min-width:28px; display:flex; align-items:center; padding:0 10px; font-size:11px; font-weight:700; color:#2E7D32;">0</div>
+            </div>
+          </div>
+          <div class="benefit-metric" data-count="0" data-suffix="" data-text="Zero">Zero</div>
+          <div class="benefit-metric-label">governor limit errors</div>
+          <div class="benefit-impact">
+            Fim das telas travadas, erros silenciosos e retrabalho. Arquitetura limpa, Health Check acima de 90%. Operação comercial contínua, sem interrupções.
+          </div>
+        </div>
+        <!-- Card 5: IA -->
+        <div class="benefit-card">
+          <div class="benefit-title">Inteligência Artificial Nativa</div>
+          <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
+            <div style="flex:1;">
+              <div style="font-size:10px; color:rgba(0,0,0,0.4); margin-bottom:3px;">HOJE</div>
+              <div style="background:#FFCDD2; height:26px; border-radius:6px; width:15%; min-width:28px; display:flex; align-items:center; padding:0 10px; font-size:11px; font-weight:700; color:#C62828;">0%</div>
+            </div>
+            <div style="font-size:16px; color:rgba(0,0,0,0.15);">&rarr;</div>
+            <div style="flex:1;">
+              <div style="font-size:10px; color:rgba(0,0,0,0.4); margin-bottom:3px;">NOVA ORG</div>
+              <div style="background:#C8E6C9; height:26px; border-radius:6px; width:31%; display:flex; align-items:center; padding:0 10px; font-size:11px; font-weight:700; color:#2E7D32;">31%</div>
+            </div>
+          </div>
+          <div class="benefit-metric" data-count="31" data-suffix="%">0</div>
+          <div class="benefit-metric-label">casos resolvidos sem intervenção humana</div>
+          <div class="benefit-impact">
+            Agentforce resolve 1 em cada 3 demandas sozinho — parecer automático, scoring de crédito, respostas generativas. Equipe foca no estratégico, IA cuida do operacional.
+          </div>
+        </div>
+        <!-- Card 6: Release -->
+        <div class="benefit-card">
+          <div class="benefit-title">Velocidade de Evolução</div>
+          <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
+            <div style="flex:1;">
+              <div style="font-size:10px; color:rgba(0,0,0,0.4); margin-bottom:3px;">HOJE</div>
+              <div style="background:#FFCDD2; height:26px; border-radius:6px; width:100%; display:flex; align-items:center; padding:0 10px; font-size:11px; font-weight:700; color:#C62828;">16-20 sem</div>
+            </div>
+            <div style="font-size:16px; color:rgba(0,0,0,0.15);">&rarr;</div>
+            <div style="flex:1;">
+              <div style="font-size:10px; color:rgba(0,0,0,0.4); margin-bottom:3px;">NOVA ORG</div>
+              <div style="background:#C8E6C9; height:26px; border-radius:6px; width:18%; min-width:36px; display:flex; align-items:center; padding:0 10px; font-size:11px; font-weight:700; color:#2E7D32;">3 sem</div>
+            </div>
+          </div>
+          <div class="benefit-metric" data-count="80" data-suffix="%" data-prefix="~">0</div>
+          <div class="benefit-metric-label">redução no ciclo de release</div>
+          <div class="benefit-impact">
+            Novas regras de preço ou integrações entregues em 3 semanas, não 5 meses. Vibra responde ao mercado na velocidade da concorrência. Custo por ponto cai 35%.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== SLIDE 10b — RISCOS ===================== -->
+  <div class="slide" id="slide-10b">
+    <div style="position:absolute;inset:0;background:linear-gradient(180deg, #FFF9F0 0%, #FFF3E0 100%)"></div>
+    <div class="s10-content">
+      <div class="slide-label" style="color:#E67E22;">05 &mdash; Riscos &amp; Dependências</div>
+      <h2 class="s10-title">Riscos Mapeados e <span style="color:#E67E22;">Mitigações</span></h2>
+      <div class="benefits-grid">
+        <div class="benefit-card" style="border-top:3px solid #E67E22;">
+          <div class="benefit-title">Complexidade de Integrações SAP</div>
+          <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
+            <div style="flex:1;">
+              <div style="font-size:10px; color:rgba(0,0,0,0.4); margin-bottom:3px;">RISCO</div>
+              <div style="background:#FFCDD2; height:26px; border-radius:6px; width:85%; display:flex; align-items:center; padding:0 10px; font-size:11px; font-weight:700; color:#C62828;">Alto</div>
+            </div>
+            <div style="font-size:16px; color:rgba(0,0,0,0.15);">&rarr;</div>
+            <div style="flex:1;">
+              <div style="font-size:10px; color:rgba(0,0,0,0.4); margin-bottom:3px;">MITIGAÇÃO</div>
+              <div style="background:#FFF3E0; height:26px; border-radius:6px; width:60%; display:flex; align-items:center; padding:0 10px; font-size:11px; font-weight:700; color:#E65100;">MuleSoft</div>
+            </div>
+          </div>
+          <div class="benefit-metric" style="color:#E67E22;">API-LED</div>
+          <div class="benefit-metric-label">arquitetura tolerante a falhas</div>
+          <div class="benefit-impact">
+            Migração SAP PI para CPI com microsserviços on-cloud. Pattern Event Driven com High Volume Platform Events garante resiliência nas integrações críticas de preço e pedido.
+          </div>
+        </div>
+        <div class="benefit-card" style="border-top:3px solid #E67E22;">
+          <div class="benefit-title">Estado Transitório Multi-Org</div>
+          <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
+            <div style="flex:1;">
+              <div style="font-size:10px; color:rgba(0,0,0,0.4); margin-bottom:3px;">RISCO</div>
+              <div style="background:#FFCDD2; height:26px; border-radius:6px; width:70%; display:flex; align-items:center; padding:0 10px; font-size:11px; font-weight:700; color:#C62828;">Médio-Alto</div>
+            </div>
+            <div style="font-size:16px; color:rgba(0,0,0,0.15);">&rarr;</div>
+            <div style="flex:1;">
+              <div style="font-size:10px; color:rgba(0,0,0,0.4); margin-bottom:3px;">MITIGAÇÃO</div>
+              <div style="background:#FFF3E0; height:26px; border-radius:6px; width:70%; display:flex; align-items:center; padding:0 10px; font-size:11px; font-weight:700; color:#E65100;">Data Cloud</div>
+            </div>
+          </div>
+          <div class="benefit-metric" style="color:#E67E22;">Cross-Org</div>
+          <div class="benefit-metric-label">sincronização via Data Cloud</div>
+          <div class="benefit-impact">
+            Coexistência entre Nova Sales Org e Atual Service Org até consolidação futura. Data Cloud garante visão unificada do cliente mesmo no estado transitório, com plano de convergência definido.
+          </div>
+        </div>
+        <div class="benefit-card" style="border-top:3px solid #E67E22;">
+          <div class="benefit-title">Knowledge Base para IA</div>
+          <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
+            <div style="flex:1;">
+              <div style="font-size:10px; color:rgba(0,0,0,0.4); margin-bottom:3px;">RISCO</div>
+              <div style="background:#FFCDD2; height:26px; border-radius:6px; width:60%; display:flex; align-items:center; padding:0 10px; font-size:11px; font-weight:700; color:#C62828;">Médio</div>
+            </div>
+            <div style="font-size:16px; color:rgba(0,0,0,0.15);">&rarr;</div>
+            <div style="flex:1;">
+              <div style="font-size:10px; color:rgba(0,0,0,0.4); margin-bottom:3px;">MITIGAÇÃO</div>
+              <div style="background:#FFF3E0; height:26px; border-radius:6px; width:55%; display:flex; align-items:center; padding:0 10px; font-size:11px; font-weight:700; color:#E65100;">Fase 3</div>
+            </div>
+          </div>
+          <div class="benefit-metric" style="color:#E67E22;">Pré-req</div>
+          <div class="benefit-metric-label">base estruturada antes de IA</div>
+          <div class="benefit-impact">
+            Agentforce e Einstein dependem de Knowledge populada. Construção obrigatória na Fase 3 como fundação antes de ativar agentes autônomos. Sem base, sem IA eficaz.
+          </div>
+        </div>
+        <div class="benefit-card" style="border-top:3px solid #E67E22;">
+          <div class="benefit-title">Adoção e Change Management</div>
+          <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
+            <div style="flex:1;">
+              <div style="font-size:10px; color:rgba(0,0,0,0.4); margin-bottom:3px;">RISCO</div>
+              <div style="background:#FFCDD2; height:26px; border-radius:6px; width:75%; display:flex; align-items:center; padding:0 10px; font-size:11px; font-weight:700; color:#C62828;">Alto</div>
+            </div>
+            <div style="font-size:16px; color:rgba(0,0,0,0.15);">&rarr;</div>
+            <div style="flex:1;">
+              <div style="font-size:10px; color:rgba(0,0,0,0.4); margin-bottom:3px;">MITIGAÇÃO</div>
+              <div style="background:#FFF3E0; height:26px; border-radius:6px; width:80%; display:flex; align-items:center; padding:0 10px; font-size:11px; font-weight:700; color:#E65100;">OmniStudio</div>
+            </div>
+          </div>
+          <div class="benefit-metric" style="color:#E67E22;">Guiado</div>
+          <div class="benefit-metric-label">treinamento in-app + rollout faseado</div>
+          <div class="benefit-impact">
+            Processos redesenhados exigem mudança de comportamento dos EVs. OmniStudio guia passo a passo, treinamento embutido na interface e rollout gradual minimizam resistência.
+          </div>
+        </div>
+        <div class="benefit-card" style="border-top:3px solid #E67E22;">
+          <div class="benefit-title">Processo de NEGs</div>
+          <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
+            <div style="flex:1;">
+              <div style="font-size:10px; color:rgba(0,0,0,0.4); margin-bottom:3px;">RISCO</div>
+              <div style="background:#FFCDD2; height:26px; border-radius:6px; width:55%; display:flex; align-items:center; padding:0 10px; font-size:11px; font-weight:700; color:#C62828;">Médio</div>
+            </div>
+            <div style="font-size:16px; color:rgba(0,0,0,0.15);">&rarr;</div>
+            <div style="flex:1;">
+              <div style="font-size:10px; color:rgba(0,0,0,0.4); margin-bottom:3px;">MITIGAÇÃO</div>
+              <div style="background:#FFF3E0; height:26px; border-radius:6px; width:65%; display:flex; align-items:center; padding:0 10px; font-size:11px; font-weight:700; color:#E65100;">Fase 1</div>
+            </div>
+          </div>
+          <div class="benefit-metric" style="color:#E67E22;">Plan&amp;Design</div>
+          <div class="benefit-metric-label">estudo dedicado na Fase 1</div>
+          <div class="benefit-impact">
+            Indicação é usar Opportunity, porém necessita validação contra o processo atual de Negociação. Plan&amp;Design dedicado para definir modelo antes de construir.
+          </div>
+        </div>
+        <div class="benefit-card" style="border-top:3px solid #E67E22;">
+          <div class="benefit-title">Telefonia (Dual CTI)</div>
+          <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
+            <div style="flex:1;">
+              <div style="font-size:10px; color:rgba(0,0,0,0.4); margin-bottom:3px;">RISCO</div>
+              <div style="background:#FFCDD2; height:26px; border-radius:6px; width:50%; display:flex; align-items:center; padding:0 10px; font-size:11px; font-weight:700; color:#C62828;">Médio</div>
+            </div>
+            <div style="font-size:16px; color:rgba(0,0,0,0.15);">&rarr;</div>
+            <div style="flex:1;">
+              <div style="font-size:10px; color:rgba(0,0,0,0.4); margin-bottom:3px;">MITIGAÇÃO</div>
+              <div style="background:#FFF3E0; height:26px; border-radius:6px; width:75%; display:flex; align-items:center; padding:0 10px; font-size:11px; font-weight:700; color:#E65100;">Fase 3</div>
+            </div>
+          </div>
+          <div class="benefit-metric" style="color:#E67E22;">OpenCTI</div>
+          <div class="benefit-metric-label">migração Genesys + Avaya</div>
+          <div class="benefit-impact">
+            Vibra opera com dois provedores (Genesys e Avaya). Avaliação de migração para Service Cloud Voice na Fase 3, com licenciamento e setup por provedor. Sem impacto nas fases iniciais.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== SLIDE 10c — ASKs ===================== -->
+  <div class="slide" id="slide-10c">
+    <div style="position:absolute;inset:0;background:linear-gradient(135deg, #003320 0%, #00A651 100%);"></div>
+    <div class="s10-content">
+      <div class="slide-label" style="color:rgba(255,255,255,0.6);">06 &mdash; O que precisamos</div>
+      <h2 class="s10-title" style="color:#FFF;">Pré-requisitos para o <span style="color:var(--gold);">Sucesso</span></h2>
+      <div class="benefits-grid">
+        <div class="benefit-card" style="background:rgba(255,255,255,0.07); backdrop-filter:blur(8px); border-top:3px solid var(--gold);">
+          <div class="benefit-title" style="color:#FFF; font-size:17px;">Governança Salesforce</div>
+          <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
+            <div style="flex:1;">
+              <div style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.75); margin-bottom:3px; letter-spacing:1px;">IMPACTO</div>
+              <div style="background:rgba(245,166,35,0.25); height:28px; border-radius:6px; width:90%; display:flex; align-items:center; padding:0 10px; font-size:12px; font-weight:800; color:var(--gold);">Crítico</div>
+            </div>
+            <div style="font-size:16px; color:rgba(255,255,255,0.15);">&rarr;</div>
+            <div style="flex:1;">
+              <div style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.75); margin-bottom:3px; letter-spacing:1px;">ENTREGA</div>
+              <div style="background:rgba(0,166,81,0.25); height:28px; border-radius:6px; width:50%; display:flex; align-items:center; padding:0 10px; font-size:12px; font-weight:800; color:var(--vibra-green-light);">Fase 1</div>
+            </div>
+          </div>
+          <div class="benefit-metric" style="color:var(--gold);">CoE</div>
+          <div class="benefit-metric-label" style="color:rgba(255,255,255,0.75);">Centro de Excelência ativo</div>
+          <div class="benefit-impact" style="color:rgba(255,255,255,0.9); border-color:rgba(255,255,255,0.12);">
+            Comitê com representantes de negócio e TI. Ownership por domínio definido. Decisões claras, responsáveis nomeados, evolução contínua garantida.
+          </div>
+        </div>
+        <div class="benefit-card" style="background:rgba(255,255,255,0.07); backdrop-filter:blur(8px); border-top:3px solid var(--gold);">
+          <div class="benefit-title" style="color:#FFF; font-size:17px;">Produtização</div>
+          <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
+            <div style="flex:1;">
+              <div style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.75); margin-bottom:3px; letter-spacing:1px;">IMPACTO</div>
+              <div style="background:rgba(245,166,35,0.25); height:28px; border-radius:6px; width:85%; display:flex; align-items:center; padding:0 10px; font-size:12px; font-weight:800; color:var(--gold);">Crítico</div>
+            </div>
+            <div style="font-size:16px; color:rgba(255,255,255,0.15);">&rarr;</div>
+            <div style="flex:1;">
+              <div style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.75); margin-bottom:3px; letter-spacing:1px;">ENTREGA</div>
+              <div style="background:rgba(0,166,81,0.25); height:28px; border-radius:6px; width:50%; display:flex; align-items:center; padding:0 10px; font-size:12px; font-weight:800; color:var(--vibra-green-light);">Fase 1</div>
+            </div>
+          </div>
+          <div class="benefit-metric" style="color:var(--gold);">Produto</div>
+          <div class="benefit-metric-label" style="color:rgba(255,255,255,0.75);">mindset produto vs projeto</div>
+          <div class="benefit-impact" style="color:rgba(255,255,255,0.9); border-color:rgba(255,255,255,0.12);">
+            Backlog contínuo, releases incrementais, métricas de adoção. Eliminar modelo de 16-20 semanas. Product Owner nomeado com autonomia de decisão.
+          </div>
+        </div>
+        <div class="benefit-card" style="background:rgba(255,255,255,0.07); backdrop-filter:blur(8px); border-top:3px solid var(--gold);">
+          <div class="benefit-title" style="color:#FFF; font-size:17px;">Arquitetura Corporativa</div>
+          <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
+            <div style="flex:1;">
+              <div style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.75); margin-bottom:3px; letter-spacing:1px;">IMPACTO</div>
+              <div style="background:rgba(245,166,35,0.25); height:28px; border-radius:6px; width:80%; display:flex; align-items:center; padding:0 10px; font-size:12px; font-weight:800; color:var(--gold);">Alto</div>
+            </div>
+            <div style="font-size:16px; color:rgba(255,255,255,0.15);">&rarr;</div>
+            <div style="flex:1;">
+              <div style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.75); margin-bottom:3px; letter-spacing:1px;">ENTREGA</div>
+              <div style="background:rgba(0,166,81,0.25); height:28px; border-radius:6px; width:70%; display:flex; align-items:center; padding:0 10px; font-size:12px; font-weight:800; color:var(--vibra-green-light);">Contínuo</div>
+            </div>
+          </div>
+          <div class="benefit-metric" style="color:var(--gold);">C4E 4.0</div>
+          <div class="benefit-metric-label" style="color:rgba(255,255,255,0.75);">elevar maturidade de integração</div>
+          <div class="benefit-impact" style="color:rgba(255,255,255,0.9); border-color:rgba(255,255,255,0.12);">
+            Visão Single Org futura (Sales + Service). API-First com MuleSoft. ARB ativo com decisões documentadas. Elevar C4E de 1.80 para 4.0.
+          </div>
+        </div>
+        <div class="benefit-card" style="background:rgba(255,255,255,0.07); backdrop-filter:blur(8px); border-top:3px solid var(--gold);">
+          <div class="benefit-title" style="color:#FFF; font-size:17px;">Engajamento Executivo</div>
+          <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
+            <div style="flex:1;">
+              <div style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.75); margin-bottom:3px; letter-spacing:1px;">IMPACTO</div>
+              <div style="background:rgba(245,166,35,0.25); height:28px; border-radius:6px; width:95%; display:flex; align-items:center; padding:0 10px; font-size:12px; font-weight:800; color:var(--gold);">Crítico</div>
+            </div>
+            <div style="font-size:16px; color:rgba(255,255,255,0.15);">&rarr;</div>
+            <div style="flex:1;">
+              <div style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.75); margin-bottom:3px; letter-spacing:1px;">ENTREGA</div>
+              <div style="background:rgba(0,166,81,0.25); height:28px; border-radius:6px; width:70%; display:flex; align-items:center; padding:0 10px; font-size:12px; font-weight:800; color:var(--vibra-green-light);">Contínuo</div>
+            </div>
+          </div>
+          <div class="benefit-metric" style="color:var(--gold);">Sponsor</div>
+          <div class="benefit-metric-label" style="color:rgba(255,255,255,0.75);">executivo ativo e decisor</div>
+          <div class="benefit-impact" style="color:rgba(255,255,255,0.9); border-color:rgba(255,255,255,0.12);">
+            Decisões de negócio rápidas — alçadas, territórios, processos. Validação contínua em cada fase. Sem sponsor ativo, cronograma atrasa.
+          </div>
+        </div>
+        <div class="benefit-card" style="background:rgba(255,255,255,0.07); backdrop-filter:blur(8px); border-top:3px solid var(--gold);">
+          <div class="benefit-title" style="color:#FFF; font-size:17px;">Low Code &lt; 40%</div>
+          <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
+            <div style="flex:1;">
+              <div style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.75); margin-bottom:3px; letter-spacing:1px;">IMPACTO</div>
+              <div style="background:rgba(245,166,35,0.25); height:28px; border-radius:6px; width:75%; display:flex; align-items:center; padding:0 10px; font-size:12px; font-weight:800; color:var(--gold);">Alto</div>
+            </div>
+            <div style="font-size:16px; color:rgba(255,255,255,0.15);">&rarr;</div>
+            <div style="flex:1;">
+              <div style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.75); margin-bottom:3px; letter-spacing:1px;">ENTREGA</div>
+              <div style="background:rgba(0,166,81,0.25); height:28px; border-radius:6px; width:70%; display:flex; align-items:center; padding:0 10px; font-size:12px; font-weight:800; color:var(--vibra-green-light);">Contínuo</div>
+            </div>
+          </div>
+          <div class="benefit-metric" style="color:var(--gold);">&lt;40%</div>
+          <div class="benefit-metric-label" style="color:rgba(255,255,255,0.75);">customização máxima permitida</div>
+          <div class="benefit-impact" style="color:rgba(255,255,255,0.9); border-color:rgba(255,255,255,0.12);">
+            Low Code First como princípio inegociável. DDD conceitual, EPT &lt;3 segundos como requisito. Guardrail arquitetural aplicado em toda entrega.
+          </div>
+        </div>
+        <div class="benefit-card" style="background:rgba(255,255,255,0.07); backdrop-filter:blur(8px); border-top:3px solid var(--gold);">
+          <div class="benefit-title" style="color:#FFF; font-size:17px;">Data Cloud &amp; Integração</div>
+          <div style="display:flex; align-items:center; gap:10px; margin:8px 0;">
+            <div style="flex:1;">
+              <div style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.75); margin-bottom:3px; letter-spacing:1px;">IMPACTO</div>
+              <div style="background:rgba(245,166,35,0.25); height:28px; border-radius:6px; width:85%; display:flex; align-items:center; padding:0 10px; font-size:12px; font-weight:800; color:var(--gold);">Alto</div>
+            </div>
+            <div style="font-size:16px; color:rgba(255,255,255,0.15);">&rarr;</div>
+            <div style="flex:1;">
+              <div style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.75); margin-bottom:3px; letter-spacing:1px;">ENTREGA</div>
+              <div style="background:rgba(0,166,81,0.25); height:28px; border-radius:6px; width:60%; display:flex; align-items:center; padding:0 10px; font-size:12px; font-weight:800; color:var(--vibra-green-light);">Fase 2</div>
+            </div>
+          </div>
+          <div class="benefit-metric" style="color:var(--gold);">Zero Copy</div>
+          <div class="benefit-metric-label" style="color:rgba(255,255,255,0.75);">hub de dados entre orgs</div>
+          <div class="benefit-impact" style="color:rgba(255,255,255,0.9); border-color:rgba(255,255,255,0.12);">
+            Data Cloud como ponte entre orgs e SAP. Event Driven Architecture com High Volume Platform Events. Requer investimento em licenciamento dedicado.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== SLIDE 11 — CIERRE ===================== -->
+  <div class="slide" id="slide-11">
+    <div class="s11-bg"></div>
+    <video class="bg-video bg-video-dark" autoplay muted loop playsinline><source src="bg-video-industrial.mp4" type="video/mp4"></video>
+    <div class="s11-content">
+      <div class="s11-glass">
+        <div class="s11-logos">
+          <img src="logo-vibra-green.png" alt="Vibra" style="height:48px; object-fit:contain;">
+          <span class="brand-x" style="color: rgba(0,0,0,0.2);">&times;</span>
+          <img src="logo-salesforce.png" alt="Salesforce" style="height:40px; object-fit:contain;">
+        </div>
+        <h2 class="s11-main">Nova Org.<br>Nova <span>era.</span></h2>
+        <p class="s11-sub">
+          4 fases. 30+ temas. Um roadmap completo para eliminar a dívida técnica, acelerar vendas e revolucionar o atendimento com Inteligência Artificial.
+        </p>
+        <button class="btn-primary" style="font-size:16px; padding:16px 40px;">Agendar Próximo Passo &rarr;</button>
+      </div>
+    </div>
+    <img src="mascot-duo.png" alt="" class="mascot mascot-s11">
+  </div>
+
+</div><!-- /deck -->
+
+<div id="blackout"></div>
+
+<!-- Nav buttons -->
+<button class="nav-btn" id="nav-prev" onclick="navigate(-1)">
+  <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+</button>
+<button class="nav-btn" id="nav-next" onclick="navigate(1)">
+  <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+</button>
+
+<div id="dot-nav"></div>
+<div id="counter">1 / 11</div>
+
+<script>
+let current = 0;
+const slides = document.querySelectorAll('.slide');
+const total = slides.length;
+let isAnimating = false;
+
+function goTo(idx) {
+  if (isAnimating || idx === current) return;
+  isAnimating = true;
+  slides[current].classList.add('exit');
+  slides[current].classList.remove('active');
+  setTimeout(() => { slides[current].classList.remove('exit'); }, 500);
+  current = Math.max(0, Math.min(idx, total - 1));
+  slides[current].classList.add('active');
+  updateUI();
+  setTimeout(() => { isAnimating = false; }, 550);
+}
+
+function navigate(dir) {
+  const next = current + dir;
+  if (next >= 0 && next < total) goTo(next);
+}
+
+function updateUI() {
+  const pct = ((current + 1) / total) * 100;
+  document.getElementById('progress').style.width = pct + '%';
+  document.getElementById('counter').textContent = (current + 1) + ' / ' + total;
+  document.querySelectorAll('.dot').forEach((d, i) => {
+    d.classList.toggle('active', i === current);
+  });
+  document.getElementById('nav-prev').style.opacity = current === 0 ? '0' : '';
+  document.getElementById('nav-next').style.opacity = current === total - 1 ? '0' : '';
+
+  const isDark = [0, 2, 4, 5, 8].includes(current);
+  const badgeVibra = document.getElementById('badge-vibra');
+  const badgeSf = document.getElementById('badge-sf');
+  const badgeX = document.getElementById('badge-x');
+  badgeVibra.src = isDark ? 'logo-vibra-white.png' : 'logo-vibra-green.png';
+  badgeSf.style.filter = 'none';
+  badgeX.style.color = isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.25)';
+  document.getElementById('counter').style.color = isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)';
+
+  document.querySelectorAll('.nav-btn svg').forEach(svg => {
+    svg.style.fill = isDark ? '#FFFFFF' : '#0A0A0A';
+  });
+  document.querySelectorAll('.dot:not(.active)').forEach(d => {
+    d.style.background = isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)';
+  });
+
+  slides.forEach((s, i) => {
+    const v = s.querySelector('.bg-video');
+    if (!v) return;
+    if (i === current) { v.play(); } else { v.pause(); }
+  });
+}
+
+// Dot nav
+const dotNav = document.getElementById('dot-nav');
+slides.forEach((_, i) => {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i === 0 ? ' active' : '');
+  d.onclick = () => goTo(i);
+  dotNav.appendChild(d);
+});
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (e.key === 'b' || e.key === 'B') {
+    document.getElementById('blackout').classList.toggle('active');
+    return;
+  }
+  if (document.getElementById('blackout').classList.contains('active')) {
+    document.getElementById('blackout').classList.remove('active');
+    return;
+  }
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); navigate(1); }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); navigate(-1); }
+  if (e.key === 'Home') goTo(0);
+  if (e.key === 'End') goTo(total - 1);
+});
+
+// Touch swipe
+let touchX = null;
+document.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; });
+document.addEventListener('touchend', e => {
+  if (touchX === null) return;
+  const dx = e.changedTouches[0].clientX - touchX;
+  if (Math.abs(dx) > 50) navigate(dx < 0 ? 1 : -1);
+  touchX = null;
+});
+
+// Mouse wheel
+document.addEventListener('wheel', e => {
+  e.preventDefault();
+  if (Math.abs(e.deltaY) > 30) navigate(e.deltaY > 0 ? 1 : -1);
+}, { passive: false });
+
+// Custom cursor
+const cursor = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  cursor.style.left = e.clientX + 'px';
+  cursor.style.top = e.clientY + 'px';
+});
+document.addEventListener('mouseover', e => {
+  if (e.target.closest('button, .diagram-row, .benefit-card, .metric-card')) cursor.classList.add('big');
+  else cursor.classList.remove('big');
+});
+
+// Counter animation
+function animateCounters(slide) {
+  const counters = slide.querySelectorAll('[data-count]');
+  counters.forEach(el => {
+    const target = parseFloat(el.dataset.count.replace('.', '').replace(',', '.'));
+    const suffix = el.dataset.suffix || '';
+    const isDecimal = el.dataset.count.includes('.') && !el.dataset.count.includes('.');
+    const rawTarget = el.dataset.count;
+    const duration = 2000;
+    const start = performance.now();
+
+    function update(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+
+      if (rawTarget.includes('.') && parseFloat(rawTarget) < 100) {
+        const val = (parseFloat(rawTarget.replace(',', '.')) * eased).toFixed(1);
+        el.textContent = val.replace('.', ',') + suffix;
+      } else {
+        const numTarget = parseInt(rawTarget.replace(/\./g, ''));
+        const val = Math.floor(numTarget * eased);
+        el.textContent = val.toLocaleString('pt-BR') + suffix;
+      }
+
+      if (progress < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+  });
+}
+
+// Fuel bar animation
+function animateFuelBars(slide) {
+  const fills = slide.querySelectorAll('.fuel-fill');
+  fills.forEach((fill, i) => {
+    setTimeout(() => {
+      fill.style.width = fill.dataset.width + '%';
+    }, 300 + i * 200);
+  });
+
+  const bars = slide.querySelectorAll('.comparison-bar');
+  bars.forEach((bar, i) => {
+    setTimeout(() => {
+      bar.style.height = bar.dataset.height + '%';
+    }, 800 + i * 400);
+  });
+}
+
+// Reset fuel bars when leaving slide
+function resetFuelBars(slide) {
+  slide.querySelectorAll('.fuel-fill').forEach(f => f.style.width = '0');
+  slide.querySelectorAll('.comparison-bar').forEach(b => b.style.height = '0');
+  slide.querySelectorAll('[data-count]').forEach(el => el.textContent = '0');
+}
+
+// Override goTo to trigger animations
+const _goTo = goTo;
+goTo = function(idx) {
+  if (isAnimating || idx === current) return;
+  const prevSlide = slides[current];
+  if (prevSlide.id === 'slide-2') resetFuelBars(prevSlide);
+  if (prevSlide.id === 'slide-10') {
+    prevSlide.querySelectorAll('.benefit-metric[data-count]').forEach(el => {
+      if (!el.dataset.text) el.textContent = '0';
+    });
+  }
+
+  isAnimating = true;
+  slides[current].classList.add('exit');
+  slides[current].classList.remove('active');
+  setTimeout(() => { slides[current].classList.remove('exit'); }, 500);
+  current = Math.max(0, Math.min(idx, total - 1));
+  slides[current].classList.add('active');
+  updateUI();
+
+  if (slides[current].id === 'slide-2') {
+    setTimeout(() => {
+      animateCounters(slides[current]);
+      animateFuelBars(slides[current]);
+    }, 300);
+  }
+  if (slides[current].id === 'slide-10') {
+    setTimeout(() => { animateBenefitCounters(slides[current]); }, 300);
+  }
+
+  setTimeout(() => { isAnimating = false; }, 550);
+};
+
+// Benefit counters animation
+function animateBenefitCounters(slide) {
+  const metrics = slide.querySelectorAll('.benefit-metric[data-count]');
+  metrics.forEach((el, i) => {
+    const target = parseInt(el.dataset.count);
+    const suffix = el.dataset.suffix || '';
+    const prefix = el.dataset.prefix || '';
+    const text = el.dataset.text;
+    if (text) { el.textContent = text; return; }
+    const duration = 1800;
+    const delay = i * 150;
+    setTimeout(() => {
+      const start = performance.now();
+      function tick(now) {
+        const progress = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = prefix + Math.floor(target * eased) + suffix;
+        if (progress < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }, delay);
+  });
+}
+
+// Init
+updateUI();
+</script>
+</body>
+</html>
