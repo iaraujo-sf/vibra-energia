@@ -418,6 +418,7 @@
     width: 100vw; height: 100vh;
     display: flex; flex-direction: column;
     padding: 44px 50px 20px;
+    overflow: hidden;
   }
   .s5-header {
     margin-bottom: 12px;
@@ -505,6 +506,7 @@
     width: 100vw; height: 100vh;
     display: flex; flex-direction: column;
     padding: 40px 44px;
+    overflow: hidden;
   }
   .fase-consolidated-bg {
     position: absolute; inset: 0;
@@ -621,6 +623,7 @@
     width: 100vw; height: 100vh;
     display: flex; flex-direction: column;
     padding: 44px 50px;
+    overflow: hidden;
   }
   .s10-title {
     font-size: clamp(28px, 3.5vw, 48px);
@@ -708,6 +711,7 @@
     width: 100vw; height: 100vh;
     display: flex; flex-direction: column;
     padding: 36px 48px;
+    overflow: hidden;
   }
   .gov-header { margin-bottom: 16px; }
   .gov-title {
@@ -923,6 +927,8 @@
   .gov-connector {
     display: flex; align-items: center; justify-content: center;
     height: 14px;
+    min-height: 2px;
+    flex-shrink: 1;
     position: relative;
     overflow: visible;
   }
@@ -987,18 +993,38 @@
   }
   @media (max-height: 768px) {
     .gov-content { padding: 20px 28px; }
-    .gov-title { font-size: clamp(24px, 3vw, 38px); }
-    .gov-node { width: 44px; height: 44px; font-size: 17px; }
-    .gov-card { padding: 10px 14px; border-radius: 10px; }
-    .gov-card-title { font-size: 13px; }
-    .gov-card-desc { font-size: 12px; }
+    .gov-header { margin-bottom: 6px; }
+    .gov-title { font-size: clamp(22px, 3vw, 34px); }
+    .gov-pipeline { gap: 0; }
+    .gov-node { width: 40px; height: 40px; font-size: 16px; }
+    .gov-node::after { display: none; }
+    .gov-card { padding: 8px 12px; border-radius: 10px; }
+    .gov-card-title { font-size: 12px; }
+    .gov-card-desc { font-size: 11px; line-height: 1.3; }
+    .gov-card-tags { display: none; }
+    .gov-gate-badge { display: none; }
     .gov-tag { font-size: 10px; padding: 3px 7px; }
-    .gov-connector { height: 5px; }
-    .gov-stage-left { padding-right: 16px; }
-    .gov-stage-right { padding-left: 16px; }
-    .gov-stage-name { font-size: 17px; }
-    .gov-stage-label { font-size: 10px; }
+    .gov-connector { height: 3px; }
+    .gov-stage-left { padding-right: 12px; }
+    .gov-stage-right { padding-left: 12px; }
+    .gov-stage-name { font-size: 15px; }
+    .gov-stage-label { font-size: 9px; }
     .gov-tooltip { display: none; }
+  }
+  @media (max-height: 650px) {
+    .gov-content { padding: 14px 20px; }
+    .gov-header { margin-bottom: 4px; }
+    .gov-title { font-size: clamp(18px, 2.5vw, 28px); }
+    .gov-node { width: 32px; height: 32px; font-size: 14px; }
+    .gov-card { padding: 6px 10px; }
+    .gov-card-title { font-size: 11px; }
+    .gov-card-desc { font-size: 10px; }
+    .gov-connector { height: 2px; }
+    .gov-stage-name { font-size: 13px; }
+    .gov-stage-label { font-size: 8px; }
+    .gov-stage-left { padding-right: 8px; }
+    .gov-stage-right { padding-left: 8px; }
+    .gov-stage { grid-template-columns: 1fr 50px 1fr; }
   }
 
   /* ===================== SLIDE GUARD — FULL SCREEN LIGHT ===================== */
@@ -1595,6 +1621,35 @@
     .benefit-card { padding: 14px; border-radius: 12px; }
     .benefit-metric { font-size: clamp(24px, 3vw, 36px); }
     .benefit-impact { font-size: 14px; margin-top: 10px; padding-top: 10px; }
+  }
+  @media (max-height: 650px) {
+    .s5-content { padding: 20px 22px 10px; }
+    .s5-header { margin-bottom: 4px; }
+    .s5-title { font-size: clamp(16px, 2vw, 26px); }
+    .gantt-bar { min-height: 24px; padding: 3px 8px; font-size: 10px; }
+    .gantt-row-label { font-size: 10px; }
+    .gantt-phases-header { gap: 1px; }
+    .gantt-phase-label span { padding: 3px 8px; font-size: 10px; }
+
+    .fase-consolidated { padding: 18px 20px; }
+    .fase-consolidated-header { margin-bottom: 6px; }
+    .fase-consolidated-header h2 { font-size: clamp(18px, 2.5vw, 28px); }
+    .diagram-row { grid-template-columns: 100px repeat(4, 1fr); }
+    .diagram-table-header span { font-size: 8px; padding: 4px 6px; }
+    .diagram-cell { font-size: 10px; padding: 4px 6px; line-height: 1.3; }
+    .diagram-row-label { padding: 4px 6px; }
+    .row-num { font-size: 9px; width: 18px; height: 18px; }
+    .row-title { font-size: 10px; }
+    .cell-highlight { font-size: 10px; padding: 2px 8px; margin-top: 2px; }
+
+    .s10-content { padding: 20px 22px; }
+    .s10-title { font-size: clamp(18px, 2.5vw, 28px); margin-bottom: 12px; }
+    .benefits-grid { gap: 8px; }
+    .benefit-card { padding: 10px; border-radius: 10px; }
+    .benefit-title { font-size: 14px; margin-bottom: 4px; }
+    .benefit-metric { font-size: clamp(20px, 2.5vw, 30px); }
+    .benefit-metric-label { font-size: 11px; }
+    .benefit-impact { font-size: 12px; margin-top: 6px; padding-top: 6px; }
   }
 </style>
 </head>
